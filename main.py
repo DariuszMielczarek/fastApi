@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from asyncio import sleep, Task
+from asyncio import sleep, Task, Lock
 
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
@@ -23,6 +23,7 @@ class Order(BaseModel):
     description: str
     time: int = 60
     status: OrderStatus = OrderStatus.received
+    client_name: str
 
 
 class OrderDTO(BaseModel):
@@ -37,12 +38,14 @@ class Client(BaseModel):
 
 ordersDb = []
 clientsDb = []
+orders_lock = asyncio.Lock()
 app = FastAPI()
 
 
 @app.post('/orders/process')
 async def process_order_respond():
-    order = next((order for order in ordersDb if order.status == OrderStatus.received), None)
+    async with orders_lock:
+        order = next((order for order in ordersDb if order.status == OrderStatus.received), None)
     if order is None:
         logger.warning("No awaiting order")
         return JSONResponse(status_code=400, content={"message": "No awaiting order"})
@@ -54,10 +57,12 @@ async def process_order_respond():
 
 async def process_order(order: Order):
     task = asyncio.create_task(process_simulator(order))
-    order.status = OrderStatus.in_progress
+    async with orders_lock:
+        order.status = OrderStatus.in_progress
     await task
     logger.info("Finished processing order")
-    order.status = OrderStatus.complete
+    async with orders_lock:
+        order.status = OrderStatus.complete
 
 
 @app.post('/orders/{client_name}')
@@ -65,43 +70,63 @@ async def create_order(client_name: str, orderDto: OrderDTO | None = None):
     if orderDto is None:
         logger.warning('No order')
         return JSONResponse(status_code=400, content={"message": "No order"})
-    new_order = map_orderDto_to_Order(orderDto)
-    client = next((client for client in clientsDb if client.name == client_name), None)
-    if client is None:
-        clientsDb.append(Client(name=client_name, orders=[new_order]))
-        logger.info('Created new client')
-    else:
-        client.orders.append(new_order)
-        logger.info('Added new order to the existing client')
-    ordersDb.append(new_order)
+    async with orders_lock:
+        new_order = map_orderDto_to_Order(orderDto, client_name)
+        client = next((client for client in clientsDb if client.name == client_name), None)
+        if client is None:
+            clientsDb.append(Client(name=client_name, orders=[new_order]))
+            logger.info('Created new client')
+        else:
+            client.orders.append(new_order)
+            logger.info('Added new order to the existing client')
+        ordersDb.append(new_order)
     return JSONResponse(status_code=201, content={"message": "Success"})
 
 
 @app.get('/orders/get/all')
 async def get_orders():
     logger.info('Return all orders list ')
-    return_dict = [order.dict() for order in ordersDb]
+    async with orders_lock:
+        return_dict = [order.dict() for order in ordersDb]
     return JSONResponse(status_code=201, content={"message": "Success", "orders": return_dict})
 
 
 @app.get('/orders/get/{client_name}')
 async def get_orders_by_client(client_name: str):
-    client = next((client for client in clientsDb if client.name == client_name), None)
+    async with orders_lock:
+        client = next((client for client in clientsDb if client.name == client_name), None)
     if client is not None:
         logger.info(f"Return user''s {client_name} orders list")
-        return_dict = [order.dict() for order in client.orders]
+        async with orders_lock:
+            return_dict = [order.dict() for order in client.orders]
         return JSONResponse(status_code=201, content={"message": "Success", "orders": return_dict})
     else:
         logger.warning(f"No user with name: {client_name}")
         return JSONResponse(status_code=400, content={"message": "Incorrect username"})
 
 
+@app.delete('/orders/{order_id}')
+async def delete_order(order_id: int):
+    global ordersDb
+    async with orders_lock:
+        removed_order = next((order for order in ordersDb if order.id == order_id), None)
+        if removed_order:
+            ordersDb = [order for order in ordersDb if order.id != order_id]
+            logger.info(f"Removing order with id {order_id}")
+            client = next((client for client in clientsDb if client.name == removed_order.client_name), None)
+            client.orders.remove(removed_order)
+            return JSONResponse(status_code=201, content={"message": "Success"})
+        else:
+            logger.warning(f"No order with id {order_id}")
+            return JSONResponse(status_code=400, content={"message": "No such order"})
+
+
 def get_next_order_id():
     return 0 if len(ordersDb) == 0 else max(ordersDb, key=lambda order: order.id).id + 1
 
 
-def map_orderDto_to_Order(orderDto: OrderDTO):
-    return Order(id=get_next_order_id(), description=orderDto.description, time=orderDto.time)
+def map_orderDto_to_Order(orderDto: OrderDTO, client_name: str):
+    return Order(id=get_next_order_id(), description=orderDto.description, time=orderDto.time, client_name=client_name)
 
 
 async def process_simulator(order: Order):
