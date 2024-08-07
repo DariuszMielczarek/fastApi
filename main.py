@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 from asyncio import sleep, Task, Lock
 
 from fastapi import Body, FastAPI
@@ -105,6 +106,32 @@ async def get_orders_by_client(client_name: str):
         return JSONResponse(status_code=400, content={"message": "Incorrect username"})
 
 
+@app.get('/orders/get/status/{status_name}')
+async def get_orders_by_status(status_name: OrderStatus):
+    async with orders_lock:
+        logger.info(f"Return orders with status = {status_name.value} list")
+        return_dict = [order.dict() for order in ordersDb if order.status == status_name]
+        return JSONResponse(status_code=201, content={"message": "Success", "orders": return_dict})
+
+
+@app.delete('/orders/remove')
+async def delete_orders_of_ids(first: int = 0, last: int = sys.maxsize):
+    if last < first:
+        logger.warning(f"Tried to remove order with greater first id then last id")
+        return JSONResponse(status_code=400, content={"message": "First id greater than last id"})
+    global ordersDb
+    removed_orders_count = 0
+    async with orders_lock:
+        for order in ordersDb:
+            if first <= order.id <= last:
+                ordersDb.remove(order)
+                logger.info(f"Removing order with id {order.id}")
+                client = next((client for client in clientsDb if client.name == order.client_name), None)
+                client.orders.remove(order)
+                removed_orders_count += 1
+    return JSONResponse(status_code=201, content={"message": "Success", "removed_count": removed_orders_count})
+
+
 @app.delete('/orders/{order_id}')
 async def delete_order(order_id: int):
     global ordersDb
@@ -119,6 +146,11 @@ async def delete_order(order_id: int):
         else:
             logger.warning(f"No order with id {order_id}")
             return JSONResponse(status_code=400, content={"message": "No such order"})
+
+
+@app.get('/')
+def send_app_info():
+    return JSONResponse(status_code=201, content={"message": "Success", "tasks_count": len(ordersDb)})
 
 
 def get_next_order_id():

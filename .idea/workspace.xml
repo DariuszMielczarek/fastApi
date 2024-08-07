@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Creating and reading orders">
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Simple deleting order by id and added async locks">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -24,18 +24,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "DariuszMielczarek"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;DariuszMielczarek&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/DariuszMielczarek/fastApi",
-    "accountId": "04a8ce6e-75c7-4231-8f1c-5054c1f6ae7e"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/DariuszMielczarek/fastApi&quot;,
+    &quot;accountId&quot;: &quot;04a8ce6e-75c7-4231-8f1c-5054c1f6ae7e&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -45,53 +45,59 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "HTTP Request.queueAppScratch | #1.executor": "Run",
-    "HTTP Request.queueAppScratch | #2.executor": "Run",
-    "HTTP Request.queueAppScratch | #3.executor": "Run",
-    "HTTP Request.queueAppScratch | #4.executor": "Run",
-    "HTTP Request.queueAppScratch | #5.executor": "Run",
-    "HTTP Request.scratch | #1.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/davre/nefryt_lds",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;HTTP Request.queueAppScratch | #1.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #10.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #2.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #3.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #4.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #5.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #6.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #7.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #8.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #9.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.scratch | #1.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/davre/nefryt_lds&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "HTTP Request"
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;HTTP Request&quot;
     ]
   }
-}]]></component>
-  <component name="RunManager" selected="HTTP Request.queueAppScratch | #5">
-    <configuration name="queueAppScratch | #1" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" requestIdentifier="#1" runType="Run single request">
+}</component>
+  <component name="RunManager" selected="HTTP Request.queueAppScratch | #6">
+    <configuration name="queueAppScratch | #10" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="10" requestIdentifier="#10" runType="Run single request">
       <method v="2" />
     </configuration>
     <configuration name="queueAppScratch | #2" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="2" requestIdentifier="#2" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #3" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="3" requestIdentifier="#3" runType="Run single request">
-      <method v="2" />
-    </configuration>
     <configuration name="queueAppScratch | #4" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="4" requestIdentifier="#4" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #5" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="5" requestIdentifier="#5" runType="Run single request">
+    <configuration name="queueAppScratch | #6" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="6" requestIdentifier="#6" runType="Run single request">
+      <method v="2" />
+    </configuration>
+    <configuration name="queueAppScratch | #7" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="7" requestIdentifier="#7" runType="Run single request">
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="HTTP Request.queueAppScratch | #6" />
         <item itemvalue="HTTP Request.queueAppScratch | #4" />
-        <item itemvalue="HTTP Request.queueAppScratch | #5" />
+        <item itemvalue="HTTP Request.queueAppScratch | #7" />
+        <item itemvalue="HTTP Request.queueAppScratch | #10" />
         <item itemvalue="HTTP Request.queueAppScratch | #2" />
-        <item itemvalue="HTTP Request.queueAppScratch | #1" />
-        <item itemvalue="HTTP Request.queueAppScratch | #3" />
       </list>
     </recent_temporary>
   </component>
@@ -114,6 +120,8 @@
       <workItem from="1722940555532" duration="2828000" />
       <workItem from="1722943555112" duration="1772000" />
       <workItem from="1722945754870" duration="5367000" />
+      <workItem from="1723013258254" duration="6414000" />
+      <workItem from="1723051746233" duration="2340000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -123,7 +131,23 @@
       <option name="project" value="LOCAL" />
       <updated>1722947570682</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Fixed creating and reading orders. Added order processing">
+      <option name="closed" value="true" />
+      <created>1723015591676</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1723015591676</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Simple deleting order by id and added async locks">
+      <option name="closed" value="true" />
+      <created>1723039090669</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1723039090669</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -131,6 +155,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Creating and reading orders" />
-    <option name="LAST_COMMIT_MESSAGE" value="Creating and reading orders" />
+    <MESSAGE value="Fixed creating and reading orders. Added order processing" />
+    <MESSAGE value="Simple deleting order by id and added async locks" />
+    <option name="LAST_COMMIT_MESSAGE" value="Simple deleting order by id and added async locks" />
   </component>
 </project>
