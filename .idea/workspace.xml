@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Simple deleting order by id and added async locks">
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Enum as path parameter, basic response and query parameters">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -45,59 +45,62 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;HTTP Request.queueAppScratch | #1.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #10.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #2.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #3.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #4.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #5.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #6.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #7.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #8.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.queueAppScratch | #9.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.scratch | #1.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/davre/nefryt_lds&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "HTTP Request.queueAppScratch | #1.executor": "Run",
+    "HTTP Request.queueAppScratch | #10.executor": "Run",
+    "HTTP Request.queueAppScratch | #11.executor": "Run",
+    "HTTP Request.queueAppScratch | #12.executor": "Run",
+    "HTTP Request.queueAppScratch | #13.executor": "Run",
+    "HTTP Request.queueAppScratch | #2.executor": "Run",
+    "HTTP Request.queueAppScratch | #3.executor": "Run",
+    "HTTP Request.queueAppScratch | #4.executor": "Run",
+    "HTTP Request.queueAppScratch | #5.executor": "Run",
+    "HTTP Request.queueAppScratch | #6.executor": "Run",
+    "HTTP Request.queueAppScratch | #7.executor": "Run",
+    "HTTP Request.queueAppScratch | #8.executor": "Run",
+    "HTTP Request.queueAppScratch | #9.executor": "Run",
+    "HTTP Request.scratch | #1.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "C:/Users/davre/nefryt_lds",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;HTTP Request&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "HTTP Request"
     ]
   }
-}</component>
-  <component name="RunManager" selected="HTTP Request.queueAppScratch | #6">
-    <configuration name="queueAppScratch | #10" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="10" requestIdentifier="#10" runType="Run single request">
+}]]></component>
+  <component name="RunManager" selected="HTTP Request.queueAppScratch | #13">
+    <configuration name="queueAppScratch | #11" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="11" requestIdentifier="#11" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #2" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="2" requestIdentifier="#2" runType="Run single request">
+    <configuration name="queueAppScratch | #12" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="12" requestIdentifier="#12" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #4" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="4" requestIdentifier="#4" runType="Run single request">
+    <configuration name="queueAppScratch | #13" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="13" requestIdentifier="#13" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #6" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="6" requestIdentifier="#6" runType="Run single request">
+    <configuration name="queueAppScratch | #5" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="5" requestIdentifier="#5" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #7" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="7" requestIdentifier="#7" runType="Run single request">
+    <configuration name="queueAppScratch | #8" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="8" requestIdentifier="#8" runType="Run single request">
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="HTTP Request.queueAppScratch | #6" />
-        <item itemvalue="HTTP Request.queueAppScratch | #4" />
-        <item itemvalue="HTTP Request.queueAppScratch | #7" />
-        <item itemvalue="HTTP Request.queueAppScratch | #10" />
-        <item itemvalue="HTTP Request.queueAppScratch | #2" />
+        <item itemvalue="HTTP Request.queueAppScratch | #13" />
+        <item itemvalue="HTTP Request.queueAppScratch | #11" />
+        <item itemvalue="HTTP Request.queueAppScratch | #5" />
+        <item itemvalue="HTTP Request.queueAppScratch | #12" />
+        <item itemvalue="HTTP Request.queueAppScratch | #8" />
       </list>
     </recent_temporary>
   </component>
@@ -122,6 +125,7 @@
       <workItem from="1722945754870" duration="5367000" />
       <workItem from="1723013258254" duration="6414000" />
       <workItem from="1723051746233" duration="2340000" />
+      <workItem from="1723054112324" duration="1925000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -147,7 +151,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723039090669</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Enum as path parameter, basic response and query parameters">
+      <option name="closed" value="true" />
+      <created>1723054260213</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1723054260213</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -157,6 +169,7 @@
     <MESSAGE value="Creating and reading orders" />
     <MESSAGE value="Fixed creating and reading orders. Added order processing" />
     <MESSAGE value="Simple deleting order by id and added async locks" />
-    <option name="LAST_COMMIT_MESSAGE" value="Simple deleting order by id and added async locks" />
+    <MESSAGE value="Enum as path parameter, basic response and query parameters" />
+    <option name="LAST_COMMIT_MESSAGE" value="Enum as path parameter, basic response and query parameters" />
   </component>
 </project>

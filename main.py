@@ -2,8 +2,9 @@ import asyncio
 import logging
 import sys
 from asyncio import sleep, Task, Lock
+from typing import Annotated
 
-from fastapi import Body, FastAPI
+from fastapi import Body, FastAPI, Query
 from pydantic import BaseModel
 from enum import Enum
 
@@ -33,8 +34,8 @@ class OrderDTO(BaseModel):
 
 
 class Client(BaseModel):
-    name: str
-    orders: list[Order] | None = None
+    name: str = Ellipsis
+    orders: list[Order] = []
 
 
 ordersDb = []
@@ -64,6 +65,23 @@ async def process_order(order: Order):
     logger.info("Finished processing order")
     async with orders_lock:
         order.status = OrderStatus.complete
+
+
+@app.post('/users/add')
+async def add_user_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")], client_name2: Annotated[str | None, Query(min_length=3, max_length=30, pattern="^.+$", deprecated=True)] = None, names: Annotated[list[str] | None, Query(alias="Lista dodatków do nazwy :)")] = None):
+    async with orders_lock:
+        full_name = client_name1 if client_name2 is None else client_name1 + client_name2
+        if names is not None:
+            for name in names:
+                full_name += name
+        client = next((client for client in clientsDb if client.name == full_name), None)
+        if client is None:
+            clientsDb.append(Client(name=full_name))
+            logger.info(f"Created new client without orders with name {full_name}")
+            return JSONResponse(status_code=201, content={"message": "Success"})
+        else:
+            logger.warning('Client already exists')
+            return JSONResponse(status_code=400, content={"message": "Name used"})
 
 
 @app.post('/orders/{client_name}')
