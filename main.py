@@ -1,25 +1,18 @@
 import asyncio
 import sys
 from typing import Annotated
-
 from fastapi import Body, FastAPI, Query, Path
-from pydantic import BaseModel, Field
-
+from pydantic import BaseModel
 from starlette.responses import JSONResponse
-
-from memory_package import clientsDb, ordersDb, orders_lock, logger, set_new_ordersDb
-from orders_process_package import OrderStatus, Order
-from orders_process_package.process_order import process_order
-
-
-class OrderDTO(BaseModel):
-    description: str
-    time: int = Field(default=60, title="Estimated progress time", gt=0, lt=100)
+from memory_package import clientsDb, ordersDb, orders_lock, logger, set_new_ordersDb, get_all_orders_as_dict, \
+    get_first_order_with_status, add_order
+from orders_management_package import OrderStatus, Order, OrderDTO
+from orders_management_package.process_order import process_order
 
 
 class Client(BaseModel):
     name: str = Ellipsis
-    orders: list[Order] = []
+    orders: set[Order] = set()
 
 
 app = FastAPI()
@@ -27,8 +20,7 @@ app = FastAPI()
 
 @app.post('/orders/process')
 async def process_next_order():
-    async with orders_lock:
-        order = next((order for order in ordersDb if order.status == OrderStatus.received), None)
+    order = await get_first_order_with_status(OrderStatus.received)
     if order is None:
         logger.warning("No awaiting order")
         return JSONResponse(status_code=400, content={"message": "No awaiting order"})
@@ -79,7 +71,7 @@ async def add_user_without_task(client_name1: Annotated[str, Query(min_length=3,
 
 
 @app.post('/orders/{client_name}')
-async def create_order(client_name: str, orderDto: OrderDTO | None = None):
+async def create_order(client_name: str, orderDto: Annotated[OrderDTO | None, Body()] = None):
     if orderDto is None:
         logger.warning('No order')
         return JSONResponse(status_code=400, content={"message": "No order"})
@@ -87,20 +79,19 @@ async def create_order(client_name: str, orderDto: OrderDTO | None = None):
         new_order = map_orderDto_to_Order(orderDto, client_name)
         client = next((client for client in clientsDb if client.name == client_name), None)
         if client is None:
-            clientsDb.append(Client(name=client_name, orders=[new_order]))
+            clientsDb.append(Client(name=client_name, orders={new_order}))
             logger.info('Created new client')
         else:
-            client.orders.append(new_order)
+            client.orders.add(new_order)
             logger.info('Added new order to the existing client')
-        ordersDb.append(new_order)
+        add_order(new_order)
     return JSONResponse(status_code=201, content={"message": "Success"})
 
 
 @app.get('/orders/get/all')
 async def get_orders():
     logger.info('Return all orders list ')
-    async with orders_lock:
-        return_dict = [order.dict() for order in ordersDb]
+    return_dict = await get_all_orders_as_dict()
     return JSONResponse(status_code=201, content={"message": "Success", "orders": return_dict})
 
 
@@ -163,6 +154,40 @@ async def delete_order(order_id: int):
 @app.get('/')
 def send_app_info():
     return JSONResponse(status_code=201, content={"message": "Success", "tasks_count": len(ordersDb)})
+
+
+@app.post('/orders/swap/{order_id}')
+async def swap_orders_client(order_id: int, client_name: Annotated[str | None, Query(openapi_examples={
+                "normal": {
+                    "summary": "Normal example",
+                    "description": "A **normal** item works correctly.",
+                    "value": "Bob"
+                },
+                "converted": {
+                    "summary": "Empty example",
+                    "description": "**Empty** ***None*** works correctly",
+                    "value": "None"
+                }
+            })] = None):
+    async with orders_lock:
+        swapped_order = next((order for order in ordersDb if order.id == order_id), None)
+        if swapped_order:
+            logger.info(f"Swapping client of order with id {order_id}")
+            old_client = next((client for client in clientsDb if client.name == swapped_order.client_name), None)
+            old_client.orders.remove(swapped_order)
+            swapped_order.client_name = client_name
+            if client_name is not None:
+                new_client = next((client for client in clientsDb if client.name == swapped_order.client_name), None)
+                if new_client is None:
+                    clientsDb.append(Client(name=client_name, orders={swapped_order}))
+                    logger.info('Created new client')
+                else:
+                    new_client.orders.add(swapped_order)
+                    logger.info('Added new order to the existing client')
+            return JSONResponse(status_code=201, content={"message": "Success"})
+        else:
+            logger.warning(f"No order with id {order_id}")
+            return JSONResponse(status_code=400, content={"message": "No such order"})
 
 
 def get_next_order_id():
