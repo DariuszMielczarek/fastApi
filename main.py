@@ -1,36 +1,20 @@
 import asyncio
-import logging
 import sys
-from asyncio import sleep, Task, Lock
 from typing import Annotated
 
 from fastapi import Body, FastAPI, Query, Path
-from pydantic import BaseModel
-from enum import Enum
+from pydantic import BaseModel, Field
 
 from starlette.responses import JSONResponse
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
-class OrderStatus(str, Enum):
-    received = 'received'
-    in_progress = 'in_progress'
-    complete = 'complete'
-
-
-class Order(BaseModel):
-    id: int
-    description: str
-    time: int = 60
-    status: OrderStatus = OrderStatus.received
-    client_name: str
+from memory_package import clientsDb, ordersDb, orders_lock, logger, set_new_ordersDb
+from orders_process_package import OrderStatus, Order
+from orders_process_package.process_order import process_order
 
 
 class OrderDTO(BaseModel):
     description: str
-    time: int = 60
+    time: int = Field(default=60, title="Estimated progress time", gt=0, lt=100)
 
 
 class Client(BaseModel):
@@ -38,9 +22,6 @@ class Client(BaseModel):
     orders: list[Order] = []
 
 
-ordersDb = []
-clientsDb = []
-orders_lock = asyncio.Lock()
 app = FastAPI()
 
 
@@ -78,15 +59,6 @@ async def process_order_of_id(order_id: Annotated[int, Path(title="Order to proc
             resp_success = "Success"
         return JSONResponse(status_code=201, content={"message": resp_success, "orderId": order.id})
 
-
-async def process_order(order: Order):
-    task = asyncio.create_task(process_simulator(order))
-    async with orders_lock:
-        order.status = OrderStatus.in_progress
-    await task
-    logger.info("Finished processing order")
-    async with orders_lock:
-        order.status = OrderStatus.complete
 
 
 @app.post('/users/add')
@@ -159,7 +131,6 @@ async def delete_orders_of_ids(first: int = 0, last: int = sys.maxsize):
     if last < first:
         logger.warning(f"Tried to remove order with greater first id then last id")
         return JSONResponse(status_code=400, content={"message": "First id greater than last id"})
-    global ordersDb
     orders_to_remove = []
     async with orders_lock:
         for order in ordersDb:
@@ -175,11 +146,11 @@ async def delete_orders_of_ids(first: int = 0, last: int = sys.maxsize):
 
 @app.delete('/orders/{order_id}')
 async def delete_order(order_id: int):
-    global ordersDb
     async with orders_lock:
         removed_order = next((order for order in ordersDb if order.id == order_id), None)
         if removed_order:
-            ordersDb = [order for order in ordersDb if order.id != order_id]
+            new_ordersDb = [order for order in ordersDb if order.id != order_id]
+            set_new_ordersDb(new_ordersDb)
             logger.info(f"Removing order with id {order_id}")
             client = next((client for client in clientsDb if client.name == removed_order.client_name), None)
             client.orders.remove(removed_order)
@@ -200,7 +171,3 @@ def get_next_order_id():
 
 def map_orderDto_to_Order(orderDto: OrderDTO, client_name: str):
     return Order(id=get_next_order_id(), description=orderDto.description, time=orderDto.time, client_name=client_name)
-
-
-async def process_simulator(order: Order):
-    await sleep(order.time)
