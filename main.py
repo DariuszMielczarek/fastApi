@@ -4,7 +4,7 @@ import sys
 from asyncio import sleep, Task, Lock
 from typing import Annotated
 
-from fastapi import Body, FastAPI, Query
+from fastapi import Body, FastAPI, Query, Path
 from pydantic import BaseModel
 from enum import Enum
 
@@ -45,7 +45,7 @@ app = FastAPI()
 
 
 @app.post('/orders/process')
-async def process_order_respond():
+async def process_next_order():
     async with orders_lock:
         order = next((order for order in ordersDb if order.status == OrderStatus.received), None)
     if order is None:
@@ -55,6 +55,28 @@ async def process_order_respond():
         asyncio.create_task(process_order(order))
         logger.info("Processing order")
         return JSONResponse(status_code=201, content={"message": "Success", "orderId": order.id})
+
+
+@app.post('/orders/process/{order_id}')
+async def process_order_of_id(order_id: Annotated[int, Path(title="Order to process", ge=0)], resp_fail: Annotated[str | None, Body()] = None, resp_success: str | None = None):
+    async with orders_lock:
+        order = next((order for order in ordersDb if order.id == order_id), None)
+    if order is None:
+        logger.warning(f"No awaiting order with id = {order_id}")
+        if resp_fail is None:
+            resp_fail = "No such order"
+        return JSONResponse(status_code=400, content={"message": resp_fail})
+    elif order.status != OrderStatus.received:
+        logger.warning(f"Order with id = {order_id} has wrong status")
+        if resp_fail is None:
+            resp_fail = "Order does not await for process"
+        return JSONResponse(status_code=400, content={"message": resp_fail})
+    else:
+        asyncio.create_task(process_order(order))
+        logger.info(f"Processing order with id = {order_id}")
+        if resp_success is None:
+            resp_success = "Success"
+        return JSONResponse(status_code=201, content={"message": resp_success, "orderId": order.id})
 
 
 async def process_order(order: Order):
@@ -138,16 +160,17 @@ async def delete_orders_of_ids(first: int = 0, last: int = sys.maxsize):
         logger.warning(f"Tried to remove order with greater first id then last id")
         return JSONResponse(status_code=400, content={"message": "First id greater than last id"})
     global ordersDb
-    removed_orders_count = 0
+    orders_to_remove = []
     async with orders_lock:
         for order in ordersDb:
             if first <= order.id <= last:
-                ordersDb.remove(order)
-                logger.info(f"Removing order with id {order.id}")
-                client = next((client for client in clientsDb if client.name == order.client_name), None)
-                client.orders.remove(order)
-                removed_orders_count += 1
-    return JSONResponse(status_code=201, content={"message": "Success", "removed_count": removed_orders_count})
+                orders_to_remove.append(order)
+        for order in orders_to_remove:
+            ordersDb.remove(order)
+            logger.info(f"Removing order with id {order.id}")
+            client = next((client for client in clientsDb if client.name == order.client_name), None)
+            client.orders.remove(order)
+    return JSONResponse(status_code=201, content={"message": "Success", "removed_count": len(orders_to_remove)})
 
 
 @app.delete('/orders/{order_id}')

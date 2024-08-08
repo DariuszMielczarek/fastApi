@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Enum as path parameter, basic response and query parameters">
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Add user without task with query parameters">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -52,6 +52,9 @@
     "HTTP Request.queueAppScratch | #11.executor": "Run",
     "HTTP Request.queueAppScratch | #12.executor": "Run",
     "HTTP Request.queueAppScratch | #13.executor": "Run",
+    "HTTP Request.queueAppScratch | #14.executor": "Run",
+    "HTTP Request.queueAppScratch | #15.executor": "Run",
+    "HTTP Request.queueAppScratch | #16.executor": "Run",
     "HTTP Request.queueAppScratch | #2.executor": "Run",
     "HTTP Request.queueAppScratch | #3.executor": "Run",
     "HTTP Request.queueAppScratch | #4.executor": "Run",
@@ -78,29 +81,29 @@
     ]
   }
 }]]></component>
-  <component name="RunManager" selected="HTTP Request.queueAppScratch | #13">
-    <configuration name="queueAppScratch | #11" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="11" requestIdentifier="#11" runType="Run single request">
+  <component name="RunManager" selected="HTTP Request.queueAppScratch | #16">
+    <configuration name="queueAppScratch | #1" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" requestIdentifier="#1" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #12" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="12" requestIdentifier="#12" runType="Run single request">
+    <configuration name="queueAppScratch | #10" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="10" requestIdentifier="#10" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #13" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="13" requestIdentifier="#13" runType="Run single request">
+    <configuration name="queueAppScratch | #14" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="14" requestIdentifier="#14" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #5" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="5" requestIdentifier="#5" runType="Run single request">
+    <configuration name="queueAppScratch | #16" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="16" requestIdentifier="#16" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #8" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="8" requestIdentifier="#8" runType="Run single request">
+    <configuration name="queueAppScratch | #4" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="4" requestIdentifier="#4" runType="Run single request">
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="HTTP Request.queueAppScratch | #13" />
-        <item itemvalue="HTTP Request.queueAppScratch | #11" />
-        <item itemvalue="HTTP Request.queueAppScratch | #5" />
-        <item itemvalue="HTTP Request.queueAppScratch | #12" />
-        <item itemvalue="HTTP Request.queueAppScratch | #8" />
+        <item itemvalue="HTTP Request.queueAppScratch | #16" />
+        <item itemvalue="HTTP Request.queueAppScratch | #14" />
+        <item itemvalue="HTTP Request.queueAppScratch | #4" />
+        <item itemvalue="HTTP Request.queueAppScratch | #10" />
+        <item itemvalue="HTTP Request.queueAppScratch | #1" />
       </list>
     </recent_temporary>
   </component>
@@ -125,7 +128,8 @@
       <workItem from="1722945754870" duration="5367000" />
       <workItem from="1723013258254" duration="6414000" />
       <workItem from="1723051746233" duration="2340000" />
-      <workItem from="1723054112324" duration="1925000" />
+      <workItem from="1723054112324" duration="2838000" />
+      <workItem from="1723098836320" duration="2268000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -159,7 +163,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723054260213</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Add user without task with query parameters">
+      <option name="closed" value="true" />
+      <created>1723062274788</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1723062274788</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,6 +182,7 @@
     <MESSAGE value="Fixed creating and reading orders. Added order processing" />
     <MESSAGE value="Simple deleting order by id and added async locks" />
     <MESSAGE value="Enum as path parameter, basic response and query parameters" />
-    <option name="LAST_COMMIT_MESSAGE" value="Enum as path parameter, basic response and query parameters" />
+    <MESSAGE value="Add user without task with query parameters" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add user without task with query parameters" />
   </component>
 </project>
