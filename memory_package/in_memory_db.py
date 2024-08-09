@@ -12,6 +12,7 @@ clientsDb = []
 class ClientBase(BaseModel):
     name: str
     orders: list[Order] = []
+    photo: bytes = bytes(0)
 
 
 class Client(ClientBase):
@@ -26,6 +27,7 @@ class ClientInDb(BaseModel):
     name: str
     orders: list[Order] = list()
     password: str = Ellipsis
+    photo: bytes = bytes(0)
     id: int
 
 
@@ -63,6 +65,14 @@ def get_client_by_name(full_name: str):
     return next((client for client in clientsDb if client.name == full_name), None)
 
 
-def get_clients(count: int = None):
+def get_clientsDb(count: int = None):
     return clientsDb[:count] if count else clientsDb
+
+
+def get_ordersDb():
+    return ordersDb
+
+
+def remove_order(order: Order):
+    ordersDb.remove(order)
 
