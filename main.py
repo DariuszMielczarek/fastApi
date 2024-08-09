@@ -2,24 +2,22 @@ import asyncio
 import sys
 from typing import Annotated
 from fastapi import Body, FastAPI, Query, Path, Cookie, Header
-from pydantic import BaseModel
-from starlette.responses import JSONResponse
+from starlette import status
+from starlette.responses import JSONResponse, Response
+
+import memory_package
 from memory_package import clientsDb, ordersDb, orders_lock, logger, set_new_ordersDb, get_all_orders_as_dict, \
-    get_first_order_with_status, add_order, get_order_by_id, add_client, get_client_by_name
-from orders_management_package import OrderStatus, Order, OrderDTO
+    get_first_order_with_status, add_order, get_order_by_id, add_client, get_client_by_name, ClientOut, Client
+from orders_management_package import OrderDTO
+from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
-
-
-class Client(BaseModel):
-    name: str = Ellipsis
-    orders: set[Order] = set()
 
 
 app = FastAPI()
 
 
 @app.post('/orders/process')
-async def process_next_order():
+async def process_next_order() -> JSONResponse:
     order = await get_first_order_with_status(OrderStatus.received)
     if order is None:
         logger.warning("No awaiting order")
@@ -34,7 +32,7 @@ async def process_next_order():
 async def process_order_of_id(order_id: Annotated[int, Path(title="Order to process", ge=0)],
                               resp_fail1: Annotated[str | None, Body()] = "No such order",
                               resp_fail2: Annotated[str | None, Body()] = "Order does not await for process",
-                              resp_success: str | None = "Success"):
+                              resp_success: str | None = "Success") -> Response:
     order = await get_order_by_id(order_id)
     if order is None:
         logger.warning(f"No awaiting order with id = {order_id}")
@@ -48,22 +46,29 @@ async def process_order_of_id(order_id: Annotated[int, Path(title="Order to proc
         return JSONResponse(status_code=201, content={"message": resp_success, "orderId": order.id})
 
 
-@app.post('/users/add')
-async def add_user_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")],
+@app.post('/clients/add', response_model_exclude_unset=True, response_model=None)
+async def add_client_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")],
                                 client_name2: Annotated[str | None, Query(min_length=3, max_length=30, pattern="^.+$", deprecated=True)] = None,
-                                names: Annotated[list[str] | None, Query(alias="List of additional parts of username :)")] = None):
+                                passwords: Annotated[list[str] | None, Query(alias="List of parts of password :)")] = None) -> Response | ClientOut:
     async with orders_lock:
         full_name = client_name1 if client_name2 is None else client_name1 + client_name2
-        if names:
-            full_name += "".join(names)
         client = get_client_by_name(full_name)
         if client is None:
-            add_client(Client(name=full_name))
+            if passwords is None:
+                password = "123"
+            else:
+                password = "".join(passwords)
+            add_client(Client(name=full_name, password=password))
             logger.info(f"Created new client without orders with name {full_name}")
-            return JSONResponse(status_code=201, content={"message": "Success"})
+            return ClientOut(name=full_name)
         else:
             logger.warning('Client already exists')
             return JSONResponse(status_code=400, content={"message": "Name used"})
+
+
+@app.get('/clients/', response_model=list[ClientOut])
+async def get_clients(count: Annotated[int | None, Query(gt=0)] = None):
+    return memory_package.get_clients(count)
 
 
 @app.post('/orders/{client_name}')
@@ -75,7 +80,7 @@ async def create_order(client_name: str, orderDto: Annotated[OrderDTO | None, Bo
         new_order = map_orderDto_to_Order(orderDto, client_name)
         client = next((client for client in clientsDb if client.name == client_name), None)
         if client is None:
-            clientsDb.append(Client(name=client_name, orders={new_order}))
+            add_client(Client(name=client_name, password="123", orders=[new_order]))
             logger.info('Created new client')
         else:
             client.orders.add(new_order)
@@ -84,11 +89,11 @@ async def create_order(client_name: str, orderDto: Annotated[OrderDTO | None, Bo
     return JSONResponse(status_code=201, content={"message": "Success"})
 
 
-@app.get('/orders/get/all')
+@app.get('/orders/get/all', response_model=list[Order], status_code=status.HTTP_202_ACCEPTED)
 async def get_orders():
     logger.info('Return all orders list ')
     return_dict = await get_all_orders_as_dict()
-    return JSONResponse(status_code=201, content={"message": "Success", "orders": return_dict})
+    return return_dict
 
 
 @app.get('/orders/get/headers')
@@ -198,7 +203,7 @@ async def swap_orders_client(order_id: int, client_name: Annotated[str | None, Q
             if client_name is not None:
                 new_client = next((client for client in clientsDb if client.name == swapped_order.client_name), None)
                 if new_client is None:
-                    clientsDb.append(Client(name=client_name, orders={swapped_order}))
+                    clientsDb.append(Client(name=client_name, orders=[swapped_order]))
                     logger.info('Created new client')
                 else:
                     new_client.orders.add(swapped_order)

@@ -1,6 +1,5 @@
 from pydantic import BaseModel
-from orders_management_package import OrderStatus
-
+from .order_status import OrderStatus
 
 class Order(BaseModel):
     id: int

@@ -1,7 +1,7 @@
 from asyncio import sleep, create_task
 
 from memory_package import orders_lock, logger
-from orders_management_package import OrderStatus, Order
+from order_package import Order, OrderStatus
 
 
 async def process_order(order: Order):

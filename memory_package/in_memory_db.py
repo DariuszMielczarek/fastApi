@@ -1,9 +1,32 @@
 import copy
+import random
 
+from pydantic import BaseModel
+from order_package import Order
 from .in_memory_vars import orders_lock
 
 ordersDb = []
 clientsDb = []
+
+
+class ClientBase(BaseModel):
+    name: str
+    orders: list[Order] = []
+
+
+class Client(ClientBase):
+    password: str = Ellipsis
+
+
+class ClientOut(ClientBase):
+    pass
+
+
+class ClientInDb(BaseModel):
+    name: str
+    orders: list[Order] = list()
+    password: str = Ellipsis
+    id: int
 
 
 def set_new_ordersDb(new_ordersDb : list):
@@ -32,8 +55,14 @@ def add_order(order):
 
 
 def add_client(client):
-    clientsDb.append(client)
+    clientsDb.append(ClientInDb(**client.dict(), id=random.randint(1, 1000)))
+    print(clientsDb)
 
 
 def get_client_by_name(full_name: str):
     return next((client for client in clientsDb if client.name == full_name), None)
+
+
+def get_clients(count: int = None):
+    return clientsDb[:count] if count else clientsDb
+
