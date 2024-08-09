@@ -4,15 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Packages memory and order_process created. Validation with Field keyword">
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Fixes, cleanup and swapping owner of order - examples &amp; nested models">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/memory_package/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/memory_package/in_memory_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/in_memory_db.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/orders_process_package/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/orders_process_package/order.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/order.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/orders_process_package/order_status.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/order_status.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/orders_process_package/process_order.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/process_order.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/orders_management_package/order.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/order.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +63,9 @@
     "HTTP Request.queueAppScratch | #18.executor": "Run",
     "HTTP Request.queueAppScratch | #19.executor": "Run",
     "HTTP Request.queueAppScratch | #2.executor": "Run",
+    "HTTP Request.queueAppScratch | #20.executor": "Run",
+    "HTTP Request.queueAppScratch | #21.executor": "Run",
+    "HTTP Request.queueAppScratch | #22.executor": "Run",
     "HTTP Request.queueAppScratch | #3.executor": "Run",
     "HTTP Request.queueAppScratch | #4.executor": "Run",
     "HTTP Request.queueAppScratch | #5.executor": "Run",
@@ -91,29 +91,29 @@
     ]
   }
 }]]></component>
-  <component name="RunManager" selected="HTTP Request.queueAppScratch | #5">
+  <component name="RunManager" selected="HTTP Request.queueAppScratch | #22">
     <configuration name="queueAppScratch | #1" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" requestIdentifier="#1" runType="Run single request">
+      <method v="2" />
+    </configuration>
+    <configuration name="queueAppScratch | #10" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="10" requestIdentifier="#10" runType="Run single request">
       <method v="2" />
     </configuration>
     <configuration name="queueAppScratch | #2" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="2" requestIdentifier="#2" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #20" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="20" requestIdentifier="#20" runType="Run single request">
+    <configuration name="queueAppScratch | #21" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="21" requestIdentifier="#21" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #4" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="4" requestIdentifier="#4" runType="Run single request">
-      <method v="2" />
-    </configuration>
-    <configuration name="queueAppScratch | #5" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="5" requestIdentifier="#5" runType="Run single request">
+    <configuration name="queueAppScratch | #22" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="22" requestIdentifier="#22" runType="Run single request">
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="HTTP Request.queueAppScratch | #5" />
-        <item itemvalue="HTTP Request.queueAppScratch | #4" />
-        <item itemvalue="HTTP Request.queueAppScratch | #20" />
-        <item itemvalue="HTTP Request.queueAppScratch | #1" />
+        <item itemvalue="HTTP Request.queueAppScratch | #22" />
         <item itemvalue="HTTP Request.queueAppScratch | #2" />
+        <item itemvalue="HTTP Request.queueAppScratch | #1" />
+        <item itemvalue="HTTP Request.queueAppScratch | #21" />
+        <item itemvalue="HTTP Request.queueAppScratch | #10" />
       </list>
     </recent_temporary>
   </component>
@@ -139,7 +139,7 @@
       <workItem from="1723013258254" duration="6414000" />
       <workItem from="1723051746233" duration="2340000" />
       <workItem from="1723054112324" duration="2838000" />
-      <workItem from="1723098836320" duration="10829000" />
+      <workItem from="1723098836320" duration="16413000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -197,7 +197,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723108037049</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Fixes, cleanup and swapping owner of order - examples &amp; nested models">
+      <option name="closed" value="true" />
+      <created>1723117166122</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1723117166122</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -222,6 +230,7 @@
     <MESSAGE value="Add user without task with query parameters" />
     <MESSAGE value="Process order by id with Path parameter keyword, Body keyword. Delete orders by id fix" />
     <MESSAGE value="Packages memory and order_process created. Validation with Field keyword" />
-    <option name="LAST_COMMIT_MESSAGE" value="Packages memory and order_process created. Validation with Field keyword" />
+    <MESSAGE value="Fixes, cleanup and swapping owner of order - examples &amp; nested models" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixes, cleanup and swapping owner of order - examples &amp; nested models" />
   </component>
 </project>

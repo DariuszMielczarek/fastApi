@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-
 from orders_management_package import OrderStatus
 
 
@@ -9,6 +8,7 @@ class Order(BaseModel):
     time: int = 60
     status: OrderStatus = OrderStatus.received
     client_name: str | None
+    creation_date: str
 
     def __hash__(self):
         return hash(self.id)

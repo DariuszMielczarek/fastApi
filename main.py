@@ -1,11 +1,11 @@
 import asyncio
 import sys
 from typing import Annotated
-from fastapi import Body, FastAPI, Query, Path
+from fastapi import Body, FastAPI, Query, Path, Cookie, Header
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 from memory_package import clientsDb, ordersDb, orders_lock, logger, set_new_ordersDb, get_all_orders_as_dict, \
-    get_first_order_with_status, add_order
+    get_first_order_with_status, add_order, get_order_by_id, add_client, get_client_by_name
 from orders_management_package import OrderStatus, Order, OrderDTO
 from orders_management_package.process_order import process_order
 
@@ -31,38 +31,34 @@ async def process_next_order():
 
 
 @app.post('/orders/process/{order_id}')
-async def process_order_of_id(order_id: Annotated[int, Path(title="Order to process", ge=0)], resp_fail: Annotated[str | None, Body()] = None, resp_success: str | None = None):
-    async with orders_lock:
-        order = next((order for order in ordersDb if order.id == order_id), None)
+async def process_order_of_id(order_id: Annotated[int, Path(title="Order to process", ge=0)],
+                              resp_fail1: Annotated[str | None, Body()] = "No such order",
+                              resp_fail2: Annotated[str | None, Body()] = "Order does not await for process",
+                              resp_success: str | None = "Success"):
+    order = await get_order_by_id(order_id)
     if order is None:
         logger.warning(f"No awaiting order with id = {order_id}")
-        if resp_fail is None:
-            resp_fail = "No such order"
-        return JSONResponse(status_code=400, content={"message": resp_fail})
+        return JSONResponse(status_code=400, content={"message": resp_fail1})
     elif order.status != OrderStatus.received:
         logger.warning(f"Order with id = {order_id} has wrong status")
-        if resp_fail is None:
-            resp_fail = "Order does not await for process"
-        return JSONResponse(status_code=400, content={"message": resp_fail})
+        return JSONResponse(status_code=400, content={"message": resp_fail2})
     else:
         asyncio.create_task(process_order(order))
         logger.info(f"Processing order with id = {order_id}")
-        if resp_success is None:
-            resp_success = "Success"
         return JSONResponse(status_code=201, content={"message": resp_success, "orderId": order.id})
 
 
-
 @app.post('/users/add')
-async def add_user_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")], client_name2: Annotated[str | None, Query(min_length=3, max_length=30, pattern="^.+$", deprecated=True)] = None, names: Annotated[list[str] | None, Query(alias="Lista dodatków do nazwy :)")] = None):
+async def add_user_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")],
+                                client_name2: Annotated[str | None, Query(min_length=3, max_length=30, pattern="^.+$", deprecated=True)] = None,
+                                names: Annotated[list[str] | None, Query(alias="List of additional parts of username :)")] = None):
     async with orders_lock:
         full_name = client_name1 if client_name2 is None else client_name1 + client_name2
-        if names is not None:
-            for name in names:
-                full_name += name
-        client = next((client for client in clientsDb if client.name == full_name), None)
+        if names:
+            full_name += "".join(names)
+        client = get_client_by_name(full_name)
         if client is None:
-            clientsDb.append(Client(name=full_name))
+            add_client(Client(name=full_name))
             logger.info(f"Created new client without orders with name {full_name}")
             return JSONResponse(status_code=201, content={"message": "Success"})
         else:
@@ -93,6 +89,27 @@ async def get_orders():
     logger.info('Return all orders list ')
     return_dict = await get_all_orders_as_dict()
     return JSONResponse(status_code=201, content={"message": "Success", "orders": return_dict})
+
+
+@app.get('/orders/get/headers')
+async def get_orders_counts_from_header(clients_names: Annotated[str | None, Header()] = None):
+    async with orders_lock:
+        if clients_names:
+            clients_names_list = clients_names.split(',')
+        else:
+            clients_names_list = []
+        print(clients_names_list)
+        clients = [client for client in clientsDb if client.name in clients_names_list]
+    if len(clients) > 0:
+        results = []
+        for client in clients:
+            logger.info(f"Return user''s {client.name} orders count from header")
+            async with orders_lock:
+                results.append(len(client.orders))
+        return JSONResponse(status_code=201, content={"message": "Success", "clients_orders_count": results})
+    else:
+        logger.warning(f"No user with names given in header")
+        return JSONResponse(status_code=400, content={"message": "Incorrect header values"})
 
 
 @app.get('/orders/get/{client_name}')
@@ -152,8 +169,10 @@ async def delete_order(order_id: int):
 
 
 @app.get('/')
-def send_app_info():
-    return JSONResponse(status_code=201, content={"message": "Success", "tasks_count": len(ordersDb)})
+def send_app_info(ads_id: Annotated[str | None, Cookie()]):
+    if ads_id is not None:
+        logger.info('We have cookie value: ' + ads_id)
+    return JSONResponse(status_code=201, content={"message": "Success", "ads_id": ads_id, "tasks_count": len(ordersDb)})
 
 
 @app.post('/orders/swap/{order_id}')
@@ -195,4 +214,5 @@ def get_next_order_id():
 
 
 def map_orderDto_to_Order(orderDto: OrderDTO, client_name: str):
-    return Order(id=get_next_order_id(), description=orderDto.description, time=orderDto.time, client_name=client_name)
+    return Order(id=get_next_order_id(), description=orderDto.description,
+                 time=orderDto.time, client_name=client_name, creation_date=orderDto.timestamp.isoformat())
