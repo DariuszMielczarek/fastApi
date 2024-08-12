@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Client models, response models and status. Order package created">
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="NoOrderException, exception handler override, tags &amp; endpoint descriptions">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order_package/order.py" beforeDir="false" afterPath="$PROJECT_DIR$/order_package/order.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/orders_management_package/process_order.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/process_order.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,7 +98,7 @@
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\order_package" />
     </key>
   </component>
-  <component name="RunManager" selected="HTTP Request.queueAppScratch | #1">
+  <component name="RunManager" selected="HTTP Request.queueAppScratch | #24">
     <configuration name="queueAppScratch | #1" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" requestIdentifier="#1" runType="Run single request">
       <method v="2" />
     </configuration>
@@ -106,18 +108,18 @@
     <configuration name="queueAppScratch | #25" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="25" requestIdentifier="#25" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #4" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="4" requestIdentifier="#4" runType="Run single request">
+    <configuration name="queueAppScratch | #26" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="26" requestIdentifier="#26" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="queueAppScratch | #6" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="6" requestIdentifier="#6" runType="Run single request">
+    <configuration name="queueAppScratch | #4" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/queueAppScratch.http" index="4" requestIdentifier="#4" runType="Run single request">
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="HTTP Request.queueAppScratch | #1" />
-        <item itemvalue="HTTP Request.queueAppScratch | #6" />
-        <item itemvalue="HTTP Request.queueAppScratch | #25" />
         <item itemvalue="HTTP Request.queueAppScratch | #24" />
+        <item itemvalue="HTTP Request.queueAppScratch | #26" />
+        <item itemvalue="HTTP Request.queueAppScratch | #25" />
+        <item itemvalue="HTTP Request.queueAppScratch | #1" />
         <item itemvalue="HTTP Request.queueAppScratch | #4" />
       </list>
     </recent_temporary>
@@ -149,7 +151,7 @@
       <workItem from="1723209233328" duration="19000" />
       <workItem from="1723407177933" duration="838000" />
       <workItem from="1723452846848" duration="100000" />
-      <workItem from="1723455061260" duration="998000" />
+      <workItem from="1723455061260" duration="5608000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -231,7 +233,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723188668560</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="NoOrderException, exception handler override, tags &amp; endpoint descriptions">
+      <option name="closed" value="true" />
+      <created>1723456157267</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1723456157267</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -259,6 +269,7 @@
     <MESSAGE value="Fixes, cleanup and swapping owner of order - examples &amp; nested models" />
     <MESSAGE value="New types usage (datetime, Cookie, Header). Code cleanup" />
     <MESSAGE value="Client models, response models and status. Order package created" />
-    <option name="LAST_COMMIT_MESSAGE" value="Client models, response models and status. Order package created" />
+    <MESSAGE value="NoOrderException, exception handler override, tags &amp; endpoint descriptions" />
+    <option name="LAST_COMMIT_MESSAGE" value="NoOrderException, exception handler override, tags &amp; endpoint descriptions" />
   </component>
 </project>

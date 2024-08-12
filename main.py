@@ -9,7 +9,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 import memory_package
 from exceptions import NoOrderException
-from memory_package import logger, orders_lock, Client, ClientOut
+from memory_package import logger, orders_lock, Client, ClientOut, clientsDb
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
@@ -101,7 +101,7 @@ async def create_order(client_name: str, orderDto: Annotated[OrderDTO | None, Bo
             memory_package.add_client(Client(name=client_name, password="123", orders=[new_order]))
             logger.info('Created new client')
         else:
-            client.orders.add(new_order)
+            client.orders.append(new_order)
             logger.info('Added new order to the existing client')
         memory_package.add_order(new_order)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
@@ -141,7 +141,7 @@ async def get_orders_by_client(client_name: str):
     if client is not None:
         logger.info(f"Return user''s {client_name} orders list")
         async with orders_lock:
-            return_dict = [order.dict() for order in client.orders]
+            return_dict = [jsonable_encoder(order.dict()) for order in client.orders]
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "orders": return_dict})
     else:
         logger.warning(f"No user with name: {client_name}")
@@ -263,10 +263,36 @@ async def login_and_set_photo(name: Annotated[str, Form()], password: Annotated[
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
 
 
+@app.put("/clients/update/{client_name}", response_model=None, tags=[Tags.clients])
+async def change_client_data(client_name: Annotated[str, Path()],
+                             name: Annotated[str | None, Query()] = None,
+                             password: Annotated[str | None, Query()] = None) -> JSONResponse | ClientOut:
+    client = memory_package.get_client_by_name(client_name)
+    if not client:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
+    updated_client = Client(**client.dict())
+    updated_client.name = name if name is not None else updated_client.name
+    updated_client.password = password if password is not None else updated_client.password
+    for i, client in enumerate(clientsDb):
+        if client.name == client_name:
+            clientsDb[i] = updated_client
+    return ClientOut(**updated_client.dict())
+
+
+@app.patch("/clients/update2/{client_name}", response_model=None, tags=[Tags.clients])
+async def change_client_password(client_name: Annotated[str, Path()],
+                                 password: Annotated[str, Query()]) -> JSONResponse | ClientOut:
+    client = memory_package.get_client_by_name(client_name)
+    if not client:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
+    client.password = password if password is not None else client.password
+    return ClientOut(**client.dict())
+
+
 def get_next_order_id():
     return 0 if len(memory_package.get_ordersDb()) == 0 else max(memory_package.get_ordersDb(), key=lambda order: order.id).id + 1
 
 
 def map_orderDto_to_Order(orderDto: OrderDTO, client_name: str):
     return Order(id=get_next_order_id(), description=orderDto.description,
-                 time=orderDto.time, client_name=client_name, creation_date=orderDto.timestamp.isoformat())
+                 time=orderDto.time, client_name=client_name, creation_date=orderDto.timestamp)
