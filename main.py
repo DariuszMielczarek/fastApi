@@ -9,7 +9,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 import memory_package
 from exceptions import NoOrderException
-from memory_package import logger, orders_lock, Client, ClientOut, clientsDb
+from mapper import map_orderDto_to_Order
+from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_client_by_id
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
@@ -68,14 +69,11 @@ async def process_order_of_id(order_id: Annotated[int, Path(title="Order to proc
 async def add_client_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")],
                                 client_name2: Annotated[str | None, Query(min_length=3, max_length=30, pattern="^.+$", deprecated=True)] = None,
                                 passwords: Annotated[list[str] | None, Query(alias="List of parts of password :)")] = None) -> Response | ClientOut:
+    full_name = client_name1 if client_name2 is None else client_name1 + client_name2
     async with orders_lock:
-        full_name = client_name1 if client_name2 is None else client_name1 + client_name2
         client = memory_package.get_client_by_name(full_name)
         if client is None:
-            if passwords is None:
-                password = "123"
-            else:
-                password = "".join(passwords)
+            password = "123" if passwords is None else "".join(passwords)
             memory_package.add_client(Client(name=full_name, password=password))
             logger.info(f"Created new client without orders with name {full_name}")
             return ClientOut(name=full_name)
@@ -89,19 +87,19 @@ async def get_clients(count: Annotated[int | None, Query(gt=0)] = None):
     return memory_package.get_clientsDb(count)
 
 
-@app.post('/orders/{client_name}', tags=[Tags.order_create])
-async def create_order(client_name: str, orderDto: Annotated[OrderDTO | None, Body()] = None):
+@app.post('/orders/{client_id}', tags=[Tags.order_create])
+async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body()] = None):
     if orderDto is None:
         logger.warning('No order')
         raise NoOrderException()
     async with orders_lock:
-        new_order = map_orderDto_to_Order(orderDto, client_name)
-        client = next((client for client in memory_package.get_clientsDb() if client.name == client_name), None)
+        new_order = map_orderDto_to_Order(orderDto, client_id)
+        client = get_client_by_id([client_id])
         if client is None:
-            memory_package.add_client(Client(name=client_name, password="123", orders=[new_order]))
+            memory_package.add_client(Client(name="New client" + str(client_id), password="123", orders=[new_order]))
             logger.info('Created new client')
         else:
-            client.orders.append(new_order)
+            memory_package.add_order_to_client(new_order, client)
             logger.info('Added new order to the existing client')
         memory_package.add_order(new_order)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
@@ -115,13 +113,10 @@ async def get_orders():
 
 
 @app.get('/orders/get/headers', tags=[Tags.order_get])
-async def get_orders_counts_from_header(clients_names: Annotated[str | None, Header()] = None):
+async def get_orders_counts_from_header(clients_ids: Annotated[str | None, Header()] = None):
+    clients_ids_list = clients_ids.split(',') if clients_ids else []
     async with orders_lock:
-        if clients_names:
-            clients_names_list = clients_names.split(',')
-        else:
-            clients_names_list = []
-        clients = [client for client in memory_package.get_clientsDb() if client.name in clients_names_list]
+        clients = get_client_by_id(clients_ids_list)
     if len(clients) > 0:
         results = []
         for client in clients:
@@ -134,18 +129,18 @@ async def get_orders_counts_from_header(clients_names: Annotated[str | None, Hea
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect header values"})
 
 
-@app.get('/orders/get/{client_name}', tags=[Tags.order_get])
-async def get_orders_by_client(client_name: str):
+@app.get('/orders/get/{client_id}', tags=[Tags.order_get])
+async def get_orders_by_client(client_id: int):
     async with orders_lock:
-        client = next((client for client in memory_package.get_clientsDb() if client.name == client_name), None)
+        client = get_client_by_id([client_id])
     if client is not None:
-        logger.info(f"Return user''s {client_name} orders list")
+        logger.info(f"Return user''s {client.name} orders list")
         async with orders_lock:
             return_dict = [jsonable_encoder(order.dict()) for order in client.orders]
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "orders": return_dict})
     else:
-        logger.warning(f"No user with name: {client_name}")
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect username"})
+        logger.warning(f"No user with id: {client_id}")
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect id"})
 
 
 @app.get('/orders/get/status/{status_name}', tags=[Tags.order_get])
@@ -170,7 +165,7 @@ async def delete_orders_of_ids(first: int = 0, last: int = sys.maxsize):
         for order in orders_to_remove:
             memory_package.remove_order(order)
             logger.info(f"Removing order with id {order.id}")
-            client = next((client for client in memory_package.get_clientsDb() if client.name == order.client_name), None)
+            client = next((client for client in memory_package.get_clientsDb() if client.id == order.client_id), None)
             client.orders.remove(order)
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "removed_count": len(orders_to_remove)})
 
@@ -183,7 +178,7 @@ async def delete_order(order_id: int):
             new_ordersDb = [order for order in memory_package.get_ordersDb() if order.id != order_id]
             memory_package.set_new_ordersDb(new_ordersDb)
             logger.info(f"Removing order with id {order_id}")
-            client = next((client for client in memory_package.get_clientsDb() if client.name == removed_order.client_name), None)
+            client = next((client for client in memory_package.get_clientsDb() if client.id == removed_order.client_id), None)
             client.orders.remove(removed_order)
             return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success"})
         else:
@@ -199,7 +194,9 @@ def send_app_info(ads_id: Annotated[str | None, Cookie()]):
     **ads_id**: cookie data simulation
     """
     if ads_id is not None:
-        logger.info('We have cookie value: ' + ads_id)
+        logger.info('App info function cookies value: ' + ads_id)
+    else:
+        logger.info('App info function called without cookies value: ')
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "ads_id": ads_id, "tasks_count": len(memory_package.get_ordersDb())})
 
 
@@ -220,11 +217,11 @@ async def swap_orders_client(order_id: int, client_name: Annotated[str | None, Q
         swapped_order = next((order for order in memory_package.get_ordersDb() if order.id == order_id), None)
         if swapped_order:
             logger.info(f"Swapping client of order with id {order_id}")
-            old_client = next((client for client in memory_package.get_clientsDb() if client.name == swapped_order.client_name), None)
+            old_client = next((client for client in memory_package.get_clientsDb() if client.id == swapped_order.client_id), None)
             old_client.orders.remove(swapped_order)
             swapped_order.client_name = client_name
             if client_name is not None:
-                new_client = next((client for client in memory_package.get_clientsDb() if client.name == swapped_order.client_name), None)
+                new_client = next((client for client in memory_package.get_clientsDb() if client.id == swapped_order.client_id), None)
                 if new_client is None:
                     memory_package.add_client(Client(name=client_name, orders=[swapped_order]))
                     logger.info('Created new client')
@@ -258,7 +255,7 @@ async def login_and_set_photo(name: Annotated[str, Form()], password: Annotated[
         return response
     else:
         content = file.file.read()
-        client = next((client for client in memory_package.get_clientsDb() if client.name == name), None)
+        client = memory_package.get_client_by_name(name)
         client.photo = content
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
 
@@ -276,7 +273,7 @@ async def change_client_data(client_name: Annotated[str, Path()],
     for i, client in enumerate(clientsDb):
         if client.name == client_name:
             clientsDb[i] = updated_client
-    return ClientOut(**updated_client.dict())
+    return ClientOut(**updated_client.model_dump())
 
 
 @app.patch("/clients/update2/{client_name}", response_model=None, tags=[Tags.clients])
@@ -288,11 +285,3 @@ async def change_client_password(client_name: Annotated[str, Path()],
     client.password = password if password is not None else client.password
     return ClientOut(**client.dict())
 
-
-def get_next_order_id():
-    return 0 if len(memory_package.get_ordersDb()) == 0 else max(memory_package.get_ordersDb(), key=lambda order: order.id).id + 1
-
-
-def map_orderDto_to_Order(orderDto: OrderDTO, client_name: str):
-    return Order(id=get_next_order_id(), description=orderDto.description,
-                 time=orderDto.time, client_name=client_name, creation_date=orderDto.timestamp)

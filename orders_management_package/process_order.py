@@ -8,22 +8,22 @@ async def process_order(order: Order):
     task = create_task(process_simulator(order))
     async with orders_lock:
         order.status = OrderStatus.in_progress
-        for client in clientsDb:
-            if client.name == order.client_name:
-                for i, c_order in enumerate(client.orders):
-                    if c_order.id == order.id:
-                        client.orders[i] = order
+        replace_order_in_client_object(order)
     await task
     logger.info("Finished processing order")
     async with orders_lock:
         order.status = OrderStatus.complete
-        for client in clientsDb:
-            if client.name == order.client_name:
-                for i, c_order in enumerate(client.orders):
-                    if c_order.id == order.id:
-                        client.orders[i] = order
+        replace_order_in_client_object(order)
 
 
 async def process_simulator(order: Order):
     await sleep(order.time)
+
+
+def replace_order_in_client_object(order: Order):
+    for client in clientsDb:
+        if client.id == order.client_id:
+            for i, c_order in enumerate(client.orders):
+                if c_order.id == order.id:
+                    client.orders[i] = order
 

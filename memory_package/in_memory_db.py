@@ -1,5 +1,4 @@
 import copy
-import random
 
 from pydantic import BaseModel
 from order_package import Order
@@ -57,12 +56,19 @@ def add_order(order):
 
 
 def add_client(client):
-    clientsDb.append(ClientInDb(**client.dict(), id=random.randint(1, 1000)))
-    print(clientsDb)
+    clientsDb.append(ClientInDb(**client.dict(), id=get_next_client_id()))
+
+
+def add_order_to_client(order, client):
+    client.orders.append(order)
 
 
 def get_client_by_name(full_name: str):
     return next((client for client in clientsDb if client.name == full_name), None)
+
+
+def get_client_by_id(client_ids: list[int]):
+    return next((client for client in clientsDb if client.id in client_ids), None)
 
 
 def get_clientsDb(count: int = None):
@@ -76,3 +82,10 @@ def get_ordersDb():
 def remove_order(order: Order):
     ordersDb.remove(order)
 
+
+def get_next_order_id():
+    return 0 if len(get_ordersDb()) == 0 else max(get_ordersDb(), key=lambda order: order.id).id + 1
+
+
+def get_next_client_id():
+    return 0 if len(get_clientsDb()) == 0 else max(get_clientsDb(), key=lambda client: client.id).id + 1
