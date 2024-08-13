@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse, Response
 import memory_package
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
-from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_client_by_id
+from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_client_by_id, get_orders_by_client_id
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
@@ -133,12 +133,11 @@ async def get_orders_counts_from_header(clients_ids: Annotated[str | None, Heade
 @app.get('/orders/get/{client_id}', tags=[Tags.order_get])
 async def get_orders_by_client(client_id: int):
     async with orders_lock:
-        client = get_client_by_id([client_id])
-    if client is not None:
-        logger.info(f"Return user''s {client.name} orders list")
-        async with orders_lock:
-            return_dict = [jsonable_encoder(order.dict()) for order in client.orders]
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "orders": return_dict})
+        orders = get_orders_by_client_id(client_id)
+    if orders:
+        logger.info(f"Return user''s {client_id} orders list")
+        return JSONResponse(status_code=status.HTTP_200_OK,
+                            content={"message": "Success", "orders": [jsonable_encoder(order.dict()) for order in orders]})
     else:
         logger.warning(f"No user with id: {client_id}")
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect id"})

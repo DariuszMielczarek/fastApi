@@ -1,5 +1,6 @@
 import copy
 
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from order_package import Order
 from .in_memory_vars import orders_lock
@@ -56,7 +57,9 @@ def add_order(order):
 
 
 def add_client(client):
-    clientsDb.append(ClientInDb(**client.model_dump(), id=get_next_client_id()))
+    client_id = get_next_client_id()
+    clientsDb.append(ClientInDb(**client.model_dump(), id=client_id))
+    return client_id
 
 
 def add_order_to_client(order, client):
@@ -102,3 +105,13 @@ def get_orders_count():
 def get_password_from_client_by_name(full_name: str):
     client = get_client_by_name(full_name)
     return client.password if client else None
+
+
+def get_orders_by_client_id(client_id: int):
+    client = get_client_by_id([client_id])
+    return client.orders if client else None
+
+
+def get_orders_by_client_name(client_name: str):
+    client = get_client_by_name(client_name)
+    return client.orders if client else None
