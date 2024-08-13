@@ -1,16 +1,12 @@
-from asyncio import sleep
 from datetime import datetime
-
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
-
-from exceptions import NoOrderException
 from main import app
 from memory_package import get_orders_count, add_order, ordersDb, clientsDb, \
     get_password_from_client_by_name, add_client, Client, get_orders_by_client_id, get_clients_count
 from memory_package.in_memory_db import get_orders_by_client_name, get_next_order_id, add_order_to_client, \
-    get_client_by_id, get_order_by_id
+    get_clients_by_ids, get_order_by_id
 from order_package import Order, OrderStatus
 
 test_client = TestClient(app)
@@ -306,7 +302,7 @@ def test_process_next_order_should_return_first_order_id():
     order_id = get_next_order_id()
     new_order = Order(id=order_id, description="order1", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id([client_id]))
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     response = test_client.post("/orders/process")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['orderId'] == order_id
@@ -319,7 +315,7 @@ async def test_process_next_order_should_change_order_status():
     time = 2
     new_order = Order(id=order_id, time=time, description="order1", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id([client_id]))
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     response = test_client.post("/orders/process")
     assert response.status_code == status.HTTP_200_OK
     order = await get_order_by_id(order_id)
@@ -334,7 +330,7 @@ async def test_process_next_order_should_return_404_status_code_when_no_awaiting
     order_id = get_next_order_id()
     new_order = Order(id=order_id, description="order1", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id([client_id]))
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     response = test_client.post("/orders/process")
     assert response.status_code == status.HTTP_200_OK
     response = test_client.post("/orders/process")
@@ -346,7 +342,7 @@ def test_process_order_of_id_should_return_processed_order_id_and_message():
     order_id = get_next_order_id()
     new_order = Order(id=order_id, description="order1", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id([client_id]))
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     response = test_client.post("/orders/process/"+str(order_id))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['orderId'] == order_id
@@ -354,7 +350,7 @@ def test_process_order_of_id_should_return_processed_order_id_and_message():
     order_id = get_next_order_id()
     new_order = Order(id=order_id, description="order2", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id([client_id]))
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     new_success_msg = 'Other success message!'
     params = {"resp_success": new_success_msg}
     response = test_client.post("/orders/process/"+str(order_id), params=params)
@@ -369,7 +365,7 @@ def test_process_order_of_id_should_return_409_status_code_and_message_when_orde
     new_order = Order(id=order_id, description="order1", client_id=client_id,
                       creation_date=datetime.now(), status=OrderStatus.in_progress)
     add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id([client_id]))
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     response = test_client.post("/orders/process/"+str(order_id))
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()['detail']['message'] == "Order does not await for process"
@@ -395,3 +391,157 @@ def test_process_order_of_id_should_return_422_status_code_when_incorrect_order_
     response = test_client.post("/orders/process/-6")
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
+
+def test_get_orders_should_return_accepted_status_code():
+    response = test_client.get("/orders/get/all")
+    assert response.status_code == status.HTTP_202_ACCEPTED
+
+
+def test_get_orders_should_return_empty_list_when_no_orders_created():
+    response = test_client.get("/orders/get/all")
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert len(response.json()) == 0
+
+
+def test_get_orders_should_return_list_with_created_orders():
+    client_id = add_client(client1)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order2", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    response = test_client.get("/orders/get/all")
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    orders = response.json()
+    assert len(orders) == 2
+    assert orders[0]['description'] == "order1"
+
+
+def test_get_orders_counts_from_header_should_return_list_with_counted_given_users_orders():
+    client_id1 = add_client(client1)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order1", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id1])[0])
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order2", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id1])[0])
+    client_id2 = add_client(client2)
+    headers = {'clients-ids': str(client_id1)+','+str(client_id2)}
+    response = test_client.get("/orders/get/headers", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+    orders_count = response.json()['clients_orders_count']
+    assert len(orders_count) == 2
+    assert orders_count == [2, 0]
+
+
+def test_get_orders_counts_from_header_should_return_list_ignoring_users_that_do_not_exist():
+    client_id1 = add_client(client1)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order1", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id1])[0])
+    client_id2 = add_client(client2)
+    headers = {'clients-ids': str(client_id1)+',1555,' +str(client_id2)}
+    response = test_client.get("/orders/get/headers", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+    orders_count = response.json()['clients_orders_count']
+    assert len(orders_count) == 2
+    assert orders_count == [1, 0]
+
+
+def test_get_orders_counts_from_header_should_return_404_status_code_when_all_ids_are_incorrect():
+    headers = {'clients-ids': '0,1,1000'}
+    response = test_client.get("/orders/get/headers", headers=headers)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_get_orders_counts_from_header_should_return_404_status_code_when_header_is_in_wrong_format():
+    headers = {'clients-ids': '0,1,1000,,,aaa'}
+    response = test_client.get("/orders/get/headers", headers=headers)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_get_orders_counts_from_header_should_return_404_status_code_when_header_is_empty():
+    response = test_client.get("/orders/get/headers")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_get_orders_by_client_should_return_list_with_created_users_orders():
+    client_id = add_client(client1)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order2", client_id=client_id+1, creation_date=datetime.now())
+    add_order(new_order)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order3", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    response = test_client.get("/orders/get/"+str(client_id))
+    assert response.status_code == status.HTTP_200_OK
+    orders = response.json()['orders']
+    assert len(orders) == 2
+    assert orders[0]['description'] == "order1"
+    assert orders[1]['description'] == "order3"
+
+
+def test_get_orders_by_client_should_return_empty_list_when_no_users_orders_created():
+    client_id = add_client(client1)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order2", client_id=client_id + 1, creation_date=datetime.now())
+    add_order(new_order)
+    response = test_client.get("/orders/get/" + str(client_id))
+    assert response.status_code == status.HTTP_200_OK
+    orders = response.json()['orders']
+    assert len(orders) == 0
+
+
+def test_get_orders_by_client_should_return_404_status_code_when_client_id_is_incorrect():
+    response = test_client.get("/orders/get/0")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_get_orders_by_status_should_return_list_with_created_orders_with_given_status():
+    client_id = add_client(client1)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order2", client_id=client_id+1,
+                      creation_date=datetime.now(), status=OrderStatus.complete)
+    add_order(new_order)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order3", client_id=client_id,
+                      creation_date=datetime.now(), status=OrderStatus.complete)
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    response = test_client.get("/orders/get/status/"+OrderStatus.complete.value)
+    assert response.status_code == status.HTTP_200_OK
+    orders = response.json()['orders']
+    assert len(orders) == 2
+    assert orders[0]['description'] == "order2"
+    assert orders[1]['description'] == "order3"
+
+
+def test_get_orders_by_status_should_return_empty_list_when_no_created_orders_with_given_status():
+    client_id = add_client(client1)
+    order_id = get_next_order_id()
+    new_order = Order(id=order_id, description="order2", client_id=client_id + 1, creation_date=datetime.now())
+    add_order(new_order)
+    response = test_client.get("/orders/get/status/" + OrderStatus.complete.value)
+    assert response.status_code == status.HTTP_200_OK
+    orders = response.json()['orders']
+    assert len(orders) == 0
+
+
+def test_get_orders_should_return_422_status_code_when_status_is_incorrect():
+    response = test_client.get("/orders/get/status/cancelled")
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

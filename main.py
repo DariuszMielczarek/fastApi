@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse, Response
 import memory_package
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
-from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_client_by_id, get_orders_by_client_id
+from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_clients_by_ids, get_orders_by_client_id
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
@@ -95,12 +95,12 @@ async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body
         raise NoOrderException()
     async with orders_lock:
         new_order = map_orderDto_to_Order(orderDto, client_id)
-        client = get_client_by_id([client_id])
-        if client is None:
+        client = get_clients_by_ids([client_id])
+        if len(client) == 0:
             memory_package.add_client(Client(name="New client" + str(client_id), password="123", orders=[new_order]))
             logger.info('Created new client')
         else:
-            memory_package.add_order_to_client(new_order, client)
+            memory_package.add_order_to_client(new_order, client[0])
             logger.info('Added new order to the existing client')
         memory_package.add_order(new_order)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
@@ -116,8 +116,15 @@ async def get_orders():
 @app.get('/orders/get/headers', tags=[Tags.order_get])
 async def get_orders_counts_from_header(clients_ids: Annotated[str | None, Header()] = None):
     clients_ids_list = clients_ids.split(',') if clients_ids else []
+    clients_ids_int_list = []
+    for client_id in clients_ids_list:
+        try:
+            clients_ids_int_list.append(int(client_id))
+        except ValueError:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect header values"})
+    clients_ids_int_list = [int(client_id) for client_id in clients_ids_list]
     async with orders_lock:
-        clients = get_client_by_id(clients_ids_list)
+        clients = get_clients_by_ids(clients_ids_int_list)
     if len(clients) > 0:
         results = []
         for client in clients:
@@ -126,7 +133,7 @@ async def get_orders_counts_from_header(clients_ids: Annotated[str | None, Heade
                 results.append(len(client.orders))
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "clients_orders_count": results})
     else:
-        logger.warning(f"No user with names given in header")
+        logger.warning(f"No user with ids given in header")
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect header values"})
 
 
@@ -134,7 +141,7 @@ async def get_orders_counts_from_header(clients_ids: Annotated[str | None, Heade
 async def get_orders_by_client(client_id: int):
     async with orders_lock:
         orders = get_orders_by_client_id(client_id)
-    if orders:
+    if orders is not None:
         logger.info(f"Return user''s {client_id} orders list")
         return JSONResponse(status_code=status.HTTP_200_OK,
                             content={"message": "Success", "orders": [jsonable_encoder(order.dict()) for order in orders]})
@@ -147,7 +154,7 @@ async def get_orders_by_client(client_id: int):
 async def get_orders_by_status(status_name: OrderStatus):
     async with orders_lock:
         logger.info(f"Return orders with status = {status_name.value} list")
-        return_dict = [order.dict() for order in memory_package.get_ordersDb() if order.status == status_name]
+        return_dict = [jsonable_encoder(order.dict()) for order in memory_package.get_ordersDb() if order.status == status_name]
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "orders": return_dict})
 
 

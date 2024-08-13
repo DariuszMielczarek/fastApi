@@ -70,8 +70,8 @@ def get_client_by_name(full_name: str):
     return next((client for client in clientsDb if client.name == full_name), None)
 
 
-def get_client_by_id(client_ids: list[int]):
-    return next((client for client in clientsDb if client.id in client_ids), None)
+def get_clients_by_ids(client_ids: list[int]):
+    return [client for client in clientsDb if client.id in client_ids]
 
 
 def get_clientsDb(count: int = None):
@@ -108,8 +108,8 @@ def get_password_from_client_by_name(full_name: str):
 
 
 def get_orders_by_client_id(client_id: int):
-    client = get_client_by_id([client_id])
-    return client.orders if client else None
+    clients = get_clients_by_ids([client_id])
+    return clients[0].orders if len(clients) > 0 else None
 
 
 def get_orders_by_client_name(client_name: str):
