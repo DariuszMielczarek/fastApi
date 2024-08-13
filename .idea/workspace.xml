@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Change client - order relation from client_name to client_id">
-      <change afterPath="$PROJECT_DIR$/test_main.py" afterDir="false" />
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Tests for get_clients(), add_client_without_task() and send_app_info() functions">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/memory_package/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/memory_package/in_memory_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/in_memory_db.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order_package/order.py" beforeDir="false" afterPath="$PROJECT_DIR$/order_package/order.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,6 +83,9 @@
     "Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_when_query_parameters_values_incorrect.executor": "Run",
     "Python tests.Python tests for test_main.test_add_client_without_task_should_return_added_client_data.executor": "Run",
     "Python tests.Python tests for test_main.test_add_client_without_task_should_return_sth_when_query_parameters_values_incorrect.executor": "Run",
+    "Python tests.Python tests for test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database.executor": "Run",
+    "Python tests.Python tests for test_main.test_change_client_data_should_return_updated_client_data.executor": "Run",
+    "Python tests.Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values.executor": "Run",
     "Python tests.Python tests for test_main.test_get_clients_should_return_correct_clients_data.executor": "Run",
     "Python tests.Python tests for test_main.test_send_app_info_should_send_back_cookies_sent_by_client.executor": "Run",
     "Python tests.Python tests in test_main.py.executor": "Run",
@@ -111,7 +111,7 @@
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\order_package" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests for test_main.test_get_clients_should_return_correct_clients_data">
+  <component name="RunManager" selected="Python tests.Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values">
     <configuration name="Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_password" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
@@ -128,7 +128,7 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_add_client_without_task_should_return_422_when_query_parameters_values_incorrect" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -140,11 +140,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_add_client_without_task_should_return_422_when_query_parameters_values_incorrect&quot;" />
+      <option name="_new_target" value="&quot;test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_add_client_without_task_should_return_sth_when_query_parameters_values_incorrect" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_main.test_change_client_data_should_return_updated_client_data" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -156,7 +156,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_add_client_without_task_should_return_sth_when_query_parameters_values_incorrect&quot;" />
+      <option name="_new_target" value="&quot;test_main.test_change_client_data_should_return_updated_client_data&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="fastApiQueueApp" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_main.test_change_client_data_should_update_name_and_password_to_correct_values&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
@@ -176,29 +192,13 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests in test_main.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
-      <module name="fastApiQueueApp" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/test_main.py&quot;" />
-      <option name="_new_targetType" value="&quot;PATH&quot;" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python tests.Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_password" />
+        <item itemvalue="Python tests.Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values" />
+        <item itemvalue="Python tests.Python tests for test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database" />
+        <item itemvalue="Python tests.Python tests for test_main.test_change_client_data_should_return_updated_client_data" />
         <item itemvalue="Python tests.Python tests for test_main.test_get_clients_should_return_correct_clients_data" />
-        <item itemvalue="Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_when_query_parameters_values_incorrect" />
-        <item itemvalue="Python tests.Python tests for test_main.test_add_client_without_task_should_return_sth_when_query_parameters_values_incorrect" />
-        <item itemvalue="Python tests.Python tests in test_main.py" />
       </list>
     </recent_temporary>
   </component>
@@ -230,7 +230,7 @@
       <workItem from="1723407177933" duration="838000" />
       <workItem from="1723452846848" duration="100000" />
       <workItem from="1723455061260" duration="9142000" />
-      <workItem from="1723531540029" duration="7527000" />
+      <workItem from="1723531540029" duration="9395000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -336,7 +336,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723531642461</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Tests for get_clients(), add_client_without_task() and send_app_info() functions">
+      <option name="closed" value="true" />
+      <created>1723539376967</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1723539376967</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -367,9 +375,10 @@
     <MESSAGE value="NoOrderException, exception handler override, tags &amp; endpoint descriptions" />
     <MESSAGE value="Datetime in Order objects, PUT &amp; PATCH methods to update client data" />
     <MESSAGE value="Change client - order relation from client_name to client_id" />
-    <option name="LAST_COMMIT_MESSAGE" value="Change client - order relation from client_name to client_id" />
+    <MESSAGE value="Tests for get_clients(), add_client_without_task() and send_app_info() functions" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tests for get_clients(), add_client_without_task() and send_app_info() functions" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1723538852155" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1723540259665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

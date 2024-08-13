@@ -11,7 +11,7 @@ clientsDb = []
 class ClientBase(BaseModel):
     name: str
     orders: list[Order] = []
-    photo: bytes = bytes(0)
+    photo: str = str()
 
 
 class Client(ClientBase):
@@ -26,7 +26,7 @@ class ClientInDb(BaseModel):
     name: str
     orders: list[Order] = list()
     password: str = Ellipsis
-    photo: bytes = bytes(0)
+    photo: str = str()
     id: int
 
 

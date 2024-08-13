@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import sys
 from typing import Annotated
 from fastapi import Body, FastAPI, Query, Path, Cookie, Header, Form, UploadFile, HTTPException
@@ -238,7 +239,7 @@ async def swap_orders_client(order_id: int, client_name: Annotated[str | None, Q
 async def login(name: Annotated[str, Form()], password: Annotated[str, Form()]) -> ClientOut | JSONResponse:
     client = memory_package.get_client_by_name(name)
     if client and client.password == password:
-        return ClientOut(**client.dict())
+        return ClientOut(**client.model_dump())
     elif client and client.password != password:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Wrong password"})
     else:
@@ -247,7 +248,7 @@ async def login(name: Annotated[str, Form()], password: Annotated[str, Form()]) 
 
 @app.post("/login/set_photo", response_model=None, tags=[Tags.clients], summary="Set photo for client",
           description="With correct login parameters and file, simulates uploading photo")
-async def login_and_set_photo(name: Annotated[str, Form()], password: Annotated[str, Form()], file: UploadFile) -> JSONResponse:
+async def login_and_set_photo(name: Annotated[str, Form()], password: Annotated[str, Form()], file: UploadFile | None = None) -> JSONResponse | ClientOut:
     if file is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Wrong photo"})
     response = await login(name, password)
@@ -255,19 +256,20 @@ async def login_and_set_photo(name: Annotated[str, Form()], password: Annotated[
         return response
     else:
         content = file.file.read()
+        content = base64.b64encode(content).decode('utf-8')
         client = memory_package.get_client_by_name(name)
         client.photo = content
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
+        return ClientOut(**client.model_dump())
 
 
-@app.put("/clients/update/{client_name}", response_model=None, tags=[Tags.clients])
+@app.put("/clients/update/all/{client_name}", response_model=None, tags=[Tags.clients])
 async def change_client_data(client_name: Annotated[str, Path()],
                              name: Annotated[str | None, Query()] = None,
                              password: Annotated[str | None, Query()] = None) -> JSONResponse | ClientOut:
     client = memory_package.get_client_by_name(client_name)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
-    updated_client = Client(**client.dict())
+    updated_client = Client(**client.model_dump())
     updated_client.name = name if name is not None else updated_client.name
     updated_client.password = password if password is not None else updated_client.password
     for i, client in enumerate(clientsDb):
@@ -276,12 +278,12 @@ async def change_client_data(client_name: Annotated[str, Path()],
     return ClientOut(**updated_client.model_dump())
 
 
-@app.patch("/clients/update2/{client_name}", response_model=None, tags=[Tags.clients])
+@app.patch("/clients/update/password/{client_name}", response_model=None, tags=[Tags.clients])
 async def change_client_password(client_name: Annotated[str, Path()],
                                  password: Annotated[str, Query()]) -> JSONResponse | ClientOut:
     client = memory_package.get_client_by_name(client_name)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
     client.password = password if password is not None else client.password
-    return ClientOut(**client.dict())
+    return ClientOut(**client.model_dump())
 
