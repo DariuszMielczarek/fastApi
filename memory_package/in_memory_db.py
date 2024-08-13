@@ -56,7 +56,7 @@ def add_order(order):
 
 
 def add_client(client):
-    clientsDb.append(ClientInDb(**client.dict(), id=get_next_client_id()))
+    clientsDb.append(ClientInDb(**client.model_dump(), id=get_next_client_id()))
 
 
 def add_order_to_client(order, client):
@@ -89,3 +89,16 @@ def get_next_order_id():
 
 def get_next_client_id():
     return 0 if len(get_clientsDb()) == 0 else max(get_clientsDb(), key=lambda client: client.id).id + 1
+
+
+def get_clients_count():
+    return len(clientsDb)
+
+
+def get_orders_count():
+    return len(ordersDb)
+
+
+def get_password_from_client_by_name(full_name: str):
+    client = get_client_by_name(full_name)
+    return client.password if client else None

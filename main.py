@@ -68,12 +68,12 @@ async def process_order_of_id(order_id: Annotated[int, Path(title="Order to proc
 @app.post('/clients/add', response_model_exclude_unset=True, response_model=None, tags=[Tags.clients])
 async def add_client_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")],
                                 client_name2: Annotated[str | None, Query(min_length=3, max_length=30, pattern="^.+$", deprecated=True)] = None,
-                                passwords: Annotated[list[str] | None, Query(alias="List of parts of password :)")] = None) -> Response | ClientOut:
+                                passwords: Annotated[list[str] | None, Query(alias="passes")] = None) -> Response | ClientOut:
     full_name = client_name1 if client_name2 is None else client_name1 + client_name2
     async with orders_lock:
         client = memory_package.get_client_by_name(full_name)
         if client is None:
-            password = "123" if passwords is None else "".join(passwords)
+            password = "".join(passwords) if passwords else "123"
             memory_package.add_client(Client(name=full_name, password=password))
             logger.info(f"Created new client without orders with name {full_name}")
             return ClientOut(name=full_name)
@@ -187,7 +187,7 @@ async def delete_order(order_id: int):
 
 
 @app.get('/', tags=[Tags.order_get])
-def send_app_info(ads_id: Annotated[str | None, Cookie()]):
+def send_app_info(ads_id: Annotated[str | None, Cookie()] = None):
     """
     Get info if app works and how many tasks are currently saved
 
@@ -196,7 +196,7 @@ def send_app_info(ads_id: Annotated[str | None, Cookie()]):
     if ads_id is not None:
         logger.info('App info function cookies value: ' + ads_id)
     else:
-        logger.info('App info function called without cookies value: ')
+        logger.info('App info function called without cookies value')
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "ads_id": ads_id, "tasks_count": len(memory_package.get_ordersDb())})
 
 

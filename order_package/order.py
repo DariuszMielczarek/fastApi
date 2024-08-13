@@ -9,7 +9,7 @@ class Order(BaseModel):
     description: str
     time: int = 60
     status: OrderStatus = OrderStatus.received
-    client_id: id | None
+    client_id: int | None
     creation_date: datetime
 
     def __hash__(self):
