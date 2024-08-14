@@ -6,7 +6,7 @@ from main import app
 from memory_package import get_orders_count, add_order, ordersDb, clientsDb, \
     get_password_from_client_by_name, add_client, Client, get_orders_by_client_id, get_clients_count
 from memory_package.in_memory_db import get_orders_by_client_name, get_next_order_id, add_order_to_client, \
-    get_clients_by_ids, get_order_by_id
+    get_clients_by_ids, get_order_by_id, get_client_by_id, get_clientsDb, get_ordersDb, clear_db
 from order_package import Order, OrderStatus
 
 test_client = TestClient(app)
@@ -22,8 +22,7 @@ client2 = Client(name=name2, password='abc')
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    ordersDb.clear()
-    clientsDb.clear()
+    clear_db()
 
 
 def test_send_app_info_should_return_ok_response():
@@ -308,8 +307,7 @@ def test_process_next_order_should_return_first_order_id():
     assert response.json()['orderId'] == order_id
 
 
-@pytest.mark.asyncio
-async def test_process_next_order_should_change_order_status():
+def test_process_next_order_should_change_order_status():
     client_id = add_client(client1)
     order_id = get_next_order_id()
     time = 2
@@ -318,7 +316,7 @@ async def test_process_next_order_should_change_order_status():
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     response = test_client.post("/orders/process")
     assert response.status_code == status.HTTP_200_OK
-    order = await get_order_by_id(order_id)
+    order = get_order_by_id(order_id)
     assert order.status == OrderStatus.in_progress
 
 
@@ -545,3 +543,142 @@ def test_get_orders_by_status_should_return_empty_list_when_no_created_orders_wi
 def test_get_orders_should_return_422_status_code_when_status_is_incorrect():
     response = test_client.get("/orders/get/status/cancelled")
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_delete_order_should_remove_order():
+    client_id = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id2 = get_next_order_id()
+    new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    response = test_client.delete("/orders/"+str(order_id1))
+    assert response.status_code == status.HTTP_200_OK
+    assert len(get_orders_by_client_id(client_id)) == 1
+    assert get_orders_count() == 1
+
+
+def test_delete_order_should_return_404_status_code_if_order_does_not_exist():
+    client_id = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id2 = get_next_order_id()
+    new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    response = test_client.delete("/orders/"+str(order_id2+1))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_delete_orders_of_ids_should_return_removed_orders_count_and_remove_all_orders_when_query_parameters_not_filled():
+    client_id = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id))
+    order_id2 = get_next_order_id()
+    new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id))
+    order_id3 = get_next_order_id()
+    new_order = Order(id=order_id3, description="order3", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id))
+    response = test_client.delete("/orders/remove")
+    assert response.status_code == status.HTTP_200_OK
+    assert get_orders_count() == 0
+    assert response.json()['removed_count'] == 3
+
+
+def test_delete_orders_of_ids_should_remove_all_orders_with_ids_between_given():
+    client_id = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id2 = get_next_order_id()
+    new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id3 = get_next_order_id()
+    new_order = Order(id=order_id3, description="order3", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    order_id4 = get_next_order_id()
+    new_order = Order(id=order_id4, description="order3", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
+    params = {"first": 1, "last": 2}
+    response = test_client.delete("/orders/remove", params=params)
+    assert response.status_code == status.HTTP_200_OK
+    assert get_orders_count() == 2
+    assert response.json()['removed_count'] == 2
+
+
+def test_delete_orders_of_ids_should_return_412_status_code_when_first_id_greater_than_last_id_query_parameter():
+    client_id = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    params = {"first": 2, "last": 1}
+    response = test_client.delete("/orders/remove", params=params)
+    assert response.status_code == status.HTTP_412_PRECONDITION_FAILED
+
+
+def test_swap_orders_client_should_change_task_owner():
+    client_id1 = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    client_id2 = add_client(client2)
+    params = {'client_id': client_id2}
+    response = test_client.post("/orders/swap/"+str(order_id1), params=params)
+    assert response.status_code == status.HTTP_201_CREATED
+    assert len(get_orders_by_client_id(client_id1)) == 0
+    assert len(get_orders_by_client_id(client_id2)) == 1
+    assert get_order_by_id(order_id1).client_id == client_id2
+
+
+def test_swap_orders_client_should_change_task_owner_and_create_new_client():
+    client_id1 = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    new_client_id = client_id1+10
+    params = {'client_id': new_client_id}
+    response = test_client.post("/orders/swap/"+str(order_id1), params=params)
+    assert response.status_code == status.HTTP_201_CREATED
+    assert get_clients_count() == 2
+    assert len(get_orders_by_client_id(client_id1)) == 0
+    assert len(get_orders_by_client_name("New client"+str(new_client_id))) == 1
+
+
+def test_swap_orders_client_should_return_404_status_code_when_order_does_not_exist():
+    client_id1 = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    new_client_id = client_id1+10
+    params = {'client_id': new_client_id}
+    response = test_client.post("/orders/swap/"+str(order_id1+10), params=params)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_swap_orders_client_should_remove_owner_from_order_when_query_parameter_is_empty():
+    client_id1 = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    response = test_client.post("/orders/swap/"+str(order_id1))
+    assert response.status_code == status.HTTP_201_CREATED
+    assert len(get_orders_by_client_id(client_id1)) == 0
+    assert get_order_by_id(order_id1).client_id is None

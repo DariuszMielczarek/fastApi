@@ -1,6 +1,5 @@
 import copy
 
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from order_package import Order
 from .in_memory_vars import orders_lock
@@ -39,7 +38,7 @@ def set_new_ordersDb(new_ordersDb : list):
 async def get_all_orders_as_dict():
     async with orders_lock:
         print(ordersDb)
-        return [order.dict() for order in ordersDb]
+        return [order.model_dump() for order in ordersDb]
 
 
 async def get_first_order_with_status(status_str: str):
@@ -47,9 +46,8 @@ async def get_first_order_with_status(status_str: str):
         return next((order for order in ordersDb if order.status.value == status_str), None)
 
 
-async def get_order_by_id(order_id: int):
-    async with orders_lock:
-        return next((order for order in ordersDb if order.id == order_id), None)
+def get_order_by_id(order_id: int):
+    return next((order for order in ordersDb if order.id == order_id), None)
 
 
 def add_order(order):
@@ -72,6 +70,10 @@ def get_client_by_name(full_name: str):
 
 def get_clients_by_ids(client_ids: list[int]):
     return [client for client in clientsDb if client.id in client_ids]
+
+
+def get_client_by_id(client_id: int):
+    return get_clients_by_ids([client_id])[0] if get_clients_by_ids([client_id]) else None
 
 
 def get_clientsDb(count: int = None):
@@ -115,3 +117,8 @@ def get_orders_by_client_id(client_id: int):
 def get_orders_by_client_name(client_name: str):
     client = get_client_by_name(client_name)
     return client.orders if client else None
+
+
+def clear_db():
+    ordersDb.clear()
+    clientsDb.clear()

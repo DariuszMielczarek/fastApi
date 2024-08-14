@@ -53,7 +53,8 @@ async def process_order_of_id(order_id: Annotated[int, Path(title="Order to proc
                               resp_fail1: Annotated[str | None, Body()] = "No such order",
                               resp_fail2: Annotated[str | None, Body()] = "Order does not await for process",
                               resp_success: str | None = "Success") -> Response:
-    order = await memory_package.get_order_by_id(order_id)
+    async with orders_lock:
+        order = memory_package.get_order_by_id(order_id)
     if order is None:
         logger.warning(f"No awaiting order with id = {order_id}")
         raise NoOrderException(order_id=order_id, message=resp_fail1)
@@ -144,7 +145,7 @@ async def get_orders_by_client(client_id: int):
     if orders is not None:
         logger.info(f"Return user''s {client_id} orders list")
         return JSONResponse(status_code=status.HTTP_200_OK,
-                            content={"message": "Success", "orders": [jsonable_encoder(order.dict()) for order in orders]})
+                            content={"message": "Success", "orders": [jsonable_encoder(order.model_dump()) for order in orders]})
     else:
         logger.warning(f"No user with id: {client_id}")
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect id"})
@@ -154,7 +155,7 @@ async def get_orders_by_client(client_id: int):
 async def get_orders_by_status(status_name: OrderStatus):
     async with orders_lock:
         logger.info(f"Return orders with status = {status_name.value} list")
-        return_dict = [jsonable_encoder(order.dict()) for order in memory_package.get_ordersDb() if order.status == status_name]
+        return_dict = [jsonable_encoder(order.model_dump()) for order in memory_package.get_ordersDb() if order.status == status_name]
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "orders": return_dict})
 
 
@@ -208,7 +209,7 @@ def send_app_info(ads_id: Annotated[str | None, Cookie()] = None):
 
 
 @app.post('/orders/swap/{order_id}', tags=[Tags.order_update])
-async def swap_orders_client(order_id: int, client_name: Annotated[str | None, Query(openapi_examples={
+async def swap_orders_client(order_id: int, client_id: Annotated[int | None, Query(openapi_examples={
                 "normal": {
                     "summary": "Normal example",
                     "description": "A **normal** item works correctly.",
@@ -226,14 +227,14 @@ async def swap_orders_client(order_id: int, client_name: Annotated[str | None, Q
             logger.info(f"Swapping client of order with id {order_id}")
             old_client = next((client for client in memory_package.get_clientsDb() if client.id == swapped_order.client_id), None)
             old_client.orders.remove(swapped_order)
-            swapped_order.client_name = client_name
-            if client_name is not None:
+            swapped_order.client_id = client_id
+            if client_id is not None:
                 new_client = next((client for client in memory_package.get_clientsDb() if client.id == swapped_order.client_id), None)
                 if new_client is None:
-                    memory_package.add_client(Client(name=client_name, orders=[swapped_order]))
+                    memory_package.add_client(Client(name="New client"+str(client_id), password="123", orders=[swapped_order]))
                     logger.info('Created new client')
                 else:
-                    new_client.orders.add(swapped_order)
+                    new_client.orders.append(swapped_order)
                     logger.info('Added new order to the existing client')
             return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
         else:
