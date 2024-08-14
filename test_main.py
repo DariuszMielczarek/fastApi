@@ -6,7 +6,7 @@ from main import app
 from memory_package import get_orders_count, add_order, ordersDb, clientsDb, \
     get_password_from_client_by_name, add_client, Client, get_orders_by_client_id, get_clients_count
 from memory_package.in_memory_db import get_orders_by_client_name, get_next_order_id, add_order_to_client, \
-    get_clients_by_ids, get_order_by_id, get_client_by_id, get_clientsDb, get_ordersDb, clear_db
+    get_clients_by_ids, get_order_by_id, get_client_by_id, get_clientsDb, get_ordersDb, clear_db, open_dbs
 from order_package import Order, OrderStatus
 
 test_client = TestClient(app)
@@ -23,6 +23,7 @@ client2 = Client(name=name2, password='abc')
 @pytest.fixture(autouse=True)
 def reset_db_status():
     clear_db()
+    open_dbs()
 
 
 def test_send_app_info_should_return_ok_response():
@@ -36,7 +37,7 @@ def test_send_app_info_should_send_back_cookies_sent_by_client():
     test_client.cookies.set("ads_id", cookies_value)
     response = test_client.get("/")
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["ads_id"] == cookies_value
+    assert response.json()["query_or_ads_id"] == cookies_value
 
 
 def test_send_app_info_should_send_back_correct_number_of_orders():
@@ -54,7 +55,7 @@ def test_add_client_without_task_should_return_added_client_data():
     params = {"client_name1": name1, "client_name2": name2, "passes": password_list}
     response = test_client.post("/clients/add", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'name': name1+name2, 'orders': [], 'photo': ''}
+    assert response.json() == {'name': name1 + name2, 'orders': [], 'photo': ''}
 
 
 def test_add_client_without_task_should_return_422_status_code_when_client_name1_parameter_not_filled():
@@ -67,7 +68,7 @@ def test_add_client_without_task_should_add_client_with_correct_name():
     params = {"client_name1": name1, "client_name2": name2}
     response = test_client.post("/clients/add", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()['name'] == name1+name2
+    assert response.json()['name'] == name1 + name2
     params = {"client_name1": name1}
     response = test_client.post("/clients/add", params=params)
     assert response.status_code == status.HTTP_200_OK
@@ -119,6 +120,7 @@ def test_get_clients_should_return_correct_number_of_clients():
         add_client(client)
     params = {"count": len(clients) + 1}
     response = test_client.get("/clients/", params=params)
+    print("LOLZ")
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == len(clients)
     params = {"count": len(clients)}
@@ -140,7 +142,7 @@ def test_get_clients_should_return_422_status_code_when_query_parameter_value_in
 def test_change_client_data_should_return_updated_client_data():
     add_client(client1)
     params = {"name": "NewClientName"}
-    response = test_client.put("/clients/update/all/"+client1.name, params=params)
+    response = test_client.put("/clients/update/all/" + client1.name, params=params)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['name'] == "NewClientName"
 
@@ -151,7 +153,7 @@ def test_change_client_data_should_update_name_and_password_to_correct_values():
     new_password1 = "ABCD"
     new_password2 = "ABCDEF"
     params = {"name": new_client_name, "password": new_password1}
-    response = test_client.put("/clients/update/all/"+client1.name, params=params)
+    response = test_client.put("/clients/update/all/" + client1.name, params=params)
     assert response.status_code == status.HTTP_200_OK
     assert get_password_from_client_by_name(new_client_name) == new_password1
     params = {"password": new_password2}
@@ -163,7 +165,7 @@ def test_change_client_data_should_update_name_and_password_to_correct_values():
 def test_change_client_data_should_return_404_status_code_when_name_not_in_database():
     add_client(client1)
     params = {"name": "NewClientName", "password": "ABCD"}
-    response = test_client.put("/clients/update/all/"+client1.name+"1", params=params)
+    response = test_client.put("/clients/update/all/" + client1.name + "1", params=params)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -171,7 +173,8 @@ def test_change_client_password_should_return_updated_client_data():
     add_client(client1)
     new_password = "ABCD"
     params = {"password": new_password}
-    response = test_client.patch("/clients/update/password/"+client1.name, params=params)
+    headers = {'verification-key': 'key'}
+    response = test_client.patch("/clients/update/password/" + client1.name, params=params, headers=headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['name'] == client1.name
 
@@ -180,7 +183,8 @@ def test_change_client_password_should_update_password_to_correct_values():
     add_client(client1)
     new_password = "ABCD"
     params = {"password": new_password}
-    response = test_client.patch("/clients/update/password/"+client1.name, params=params)
+    headers = {'verification-key': 'key'}
+    response = test_client.patch("/clients/update/password/" + client1.name, params=params, headers=headers)
     assert response.status_code == status.HTTP_200_OK
     assert get_password_from_client_by_name(client1.name) == new_password
 
@@ -189,7 +193,8 @@ def test_change_client_password_should_return_404_status_code_exception_when_nam
     add_client(client1)
     new_password = "ABCD"
     params = {"password": new_password}
-    response = test_client.patch("/clients/update/"+client1.name+"1", params=params)
+    headers = {'verification-key': 'key'}
+    response = test_client.patch("/clients/update/" + client1.name + "1", params=params, headers=headers)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -203,14 +208,14 @@ def test_login_should_return_client_data_if_name_and_password_are_correct():
 
 def test_login_should_return_401_status_code_when_password_is_incorrect():
     add_client(client1)
-    data = {"name": client1.name, "password": client1.password+"1"}
+    data = {"name": client1.name, "password": client1.password + "1"}
     response = test_client.post("/login/", data=data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_login_should_return_404_status_code_when_name_is_incorrect():
     add_client(client1)
-    data = {"name": client1.name+"1", "password": client1.password}
+    data = {"name": client1.name + "1", "password": client1.password}
     response = test_client.post("/login/", data=data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -234,7 +239,7 @@ def test_login_and_set_photo_should_return_404_status_code_when_no_file_was_sent
 
 def test_login_and_set_photo_should_return_401_status_code_when_password_is_incorrect():
     add_client(client1)
-    data = {"name": client1.name, "password": client1.password+"1"}
+    data = {"name": client1.name, "password": client1.password + "1"}
     files = {'file': open('test_image.png', 'rb')}
     response = test_client.post("/login/set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -242,7 +247,7 @@ def test_login_and_set_photo_should_return_401_status_code_when_password_is_inco
 
 def test_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect():
     add_client(client1)
-    data = {"name": client1.name+"1", "password": client1.password}
+    data = {"name": client1.name + "1", "password": client1.password}
     files = {'file': open('test_image.png', 'rb')}
     response = test_client.post("/login/set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -251,14 +256,14 @@ def test_login_and_set_photo_should_return_404_status_code_when_name_is_incorrec
 def test_create_order_should_return_created_response():
     client_id = add_client(client1)
     order_data = {"description": "order1", "time": 44}
-    response = test_client.post("/orders/"+str(client_id), json=order_data)
+    response = test_client.post("/orders/" + str(client_id), json=order_data)
     assert response.status_code == status.HTTP_201_CREATED
 
 
 def test_create_order_should_save_order_with_given_data():
     client_id = add_client(client1)
     order_data = {"description": "order1", "time": 44}
-    response = test_client.post("/orders/"+str(client_id), json=order_data)
+    response = test_client.post("/orders/" + str(client_id), json=order_data)
     assert response.status_code == status.HTTP_201_CREATED
     assert get_orders_count() == 1
     assert get_clients_count() == 1
@@ -272,7 +277,7 @@ def test_create_order_should_save_order_with_given_data():
 def test_create_order_should_create_new_client_when_client_with_given_client_id_does_not_exist():
     client_id = 100
     order_data = {"description": "order1", "time": 44}
-    response = test_client.post("/orders/"+str(client_id), json=order_data)
+    response = test_client.post("/orders/" + str(client_id), json=order_data)
     assert response.status_code == status.HTTP_201_CREATED
     assert get_orders_count() == 1
     assert get_clients_count() == 1
@@ -285,14 +290,14 @@ def test_create_order_should_create_new_client_when_client_with_given_client_id_
 
 def test_create_order_should_return_404_status_code_when_no_order_was_sent():
     client_id = add_client(client1)
-    response = test_client.post("/orders/"+str(client_id))
+    response = test_client.post("/orders/" + str(client_id))
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_create_order_should_return_422_status_code_when_json_body_is_invalid():
     client_id = add_client(client1)
     order_data = {"time": 44}
-    response = test_client.post("/orders/"+str(client_id), json=order_data)
+    response = test_client.post("/orders/" + str(client_id), json=order_data)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
@@ -320,8 +325,7 @@ def test_process_next_order_should_change_order_status():
     assert order.status == OrderStatus.in_progress
 
 
-@pytest.mark.asyncio
-async def test_process_next_order_should_return_404_status_code_when_no_awaiting_order():
+def test_process_next_order_should_return_404_status_code_when_no_awaiting_order():
     response = test_client.post("/orders/process")
     assert response.status_code == status.HTTP_404_NOT_FOUND
     client_id = add_client(client1)
@@ -341,7 +345,7 @@ def test_process_order_of_id_should_return_processed_order_id_and_message():
     new_order = Order(id=order_id, description="order1", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
-    response = test_client.post("/orders/process/"+str(order_id))
+    response = test_client.post("/orders/process/" + str(order_id))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['orderId'] == order_id
     assert response.json()['message'] == 'Success'
@@ -351,7 +355,7 @@ def test_process_order_of_id_should_return_processed_order_id_and_message():
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     new_success_msg = 'Other success message!'
     params = {"resp_success": new_success_msg}
-    response = test_client.post("/orders/process/"+str(order_id), params=params)
+    response = test_client.post("/orders/process/" + str(order_id), params=params)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['orderId'] == order_id
     assert response.json()['message'] == new_success_msg
@@ -364,12 +368,12 @@ def test_process_order_of_id_should_return_409_status_code_and_message_when_orde
                       creation_date=datetime.now(), status=OrderStatus.in_progress)
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
-    response = test_client.post("/orders/process/"+str(order_id))
+    response = test_client.post("/orders/process/" + str(order_id))
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()['detail']['message'] == "Order does not await for process"
     new_fail_msg = 'Other failure message!'
     fail_msg_json_data = {"resp_fail2": new_fail_msg}
-    response = test_client.post("/orders/process/"+str(order_id), json=fail_msg_json_data)
+    response = test_client.post("/orders/process/" + str(order_id), json=fail_msg_json_data)
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()['detail']['message'] == new_fail_msg
 
@@ -429,7 +433,7 @@ def test_get_orders_counts_from_header_should_return_list_with_counted_given_use
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id1])[0])
     client_id2 = add_client(client2)
-    headers = {'clients-ids': str(client_id1)+','+str(client_id2)}
+    headers = {'clients-ids': str(client_id1) + ',' + str(client_id2)}
     response = test_client.get("/orders/get/headers", headers=headers)
     assert response.status_code == status.HTTP_200_OK
     orders_count = response.json()['clients_orders_count']
@@ -444,7 +448,7 @@ def test_get_orders_counts_from_header_should_return_list_ignoring_users_that_do
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id1])[0])
     client_id2 = add_client(client2)
-    headers = {'clients-ids': str(client_id1)+',1555,' +str(client_id2)}
+    headers = {'clients-ids': str(client_id1) + ',1555,' + str(client_id2)}
     response = test_client.get("/orders/get/headers", headers=headers)
     assert response.status_code == status.HTTP_200_OK
     orders_count = response.json()['clients_orders_count']
@@ -476,13 +480,13 @@ def test_get_orders_by_client_should_return_list_with_created_users_orders():
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     order_id = get_next_order_id()
-    new_order = Order(id=order_id, description="order2", client_id=client_id+1, creation_date=datetime.now())
+    new_order = Order(id=order_id, description="order2", client_id=client_id + 1, creation_date=datetime.now())
     add_order(new_order)
     order_id = get_next_order_id()
     new_order = Order(id=order_id, description="order3", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
-    response = test_client.get("/orders/get/"+str(client_id))
+    response = test_client.get("/orders/get/" + str(client_id))
     assert response.status_code == status.HTTP_200_OK
     orders = response.json()['orders']
     assert len(orders) == 2
@@ -513,7 +517,7 @@ def test_get_orders_by_status_should_return_list_with_created_orders_with_given_
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
     order_id = get_next_order_id()
-    new_order = Order(id=order_id, description="order2", client_id=client_id+1,
+    new_order = Order(id=order_id, description="order2", client_id=client_id + 1,
                       creation_date=datetime.now(), status=OrderStatus.complete)
     add_order(new_order)
     order_id = get_next_order_id()
@@ -521,7 +525,7 @@ def test_get_orders_by_status_should_return_list_with_created_orders_with_given_
                       creation_date=datetime.now(), status=OrderStatus.complete)
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
-    response = test_client.get("/orders/get/status/"+OrderStatus.complete.value)
+    response = test_client.get("/orders/get/status/" + OrderStatus.complete.value)
     assert response.status_code == status.HTTP_200_OK
     orders = response.json()['orders']
     assert len(orders) == 2
@@ -555,7 +559,7 @@ def test_delete_order_should_remove_order():
     new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
-    response = test_client.delete("/orders/"+str(order_id1))
+    response = test_client.delete("/orders/" + str(order_id1))
     assert response.status_code == status.HTTP_200_OK
     assert len(get_orders_by_client_id(client_id)) == 1
     assert get_orders_count() == 1
@@ -571,7 +575,7 @@ def test_delete_order_should_return_404_status_code_if_order_does_not_exist():
     new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
     add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
-    response = test_client.delete("/orders/"+str(order_id2+1))
+    response = test_client.delete("/orders/" + str(order_id2 + 1))
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -638,7 +642,7 @@ def test_swap_orders_client_should_change_task_owner():
     add_order_to_client(new_order, get_client_by_id(client_id1))
     client_id2 = add_client(client2)
     params = {'client_id': client_id2}
-    response = test_client.post("/orders/swap/"+str(order_id1), params=params)
+    response = test_client.post("/orders/swap/" + str(order_id1), params=params)
     assert response.status_code == status.HTTP_201_CREATED
     assert len(get_orders_by_client_id(client_id1)) == 0
     assert len(get_orders_by_client_id(client_id2)) == 1
@@ -651,13 +655,13 @@ def test_swap_orders_client_should_change_task_owner_and_create_new_client():
     new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
     add_order(new_order)
     add_order_to_client(new_order, get_client_by_id(client_id1))
-    new_client_id = client_id1+10
+    new_client_id = client_id1 + 10
     params = {'client_id': new_client_id}
-    response = test_client.post("/orders/swap/"+str(order_id1), params=params)
+    response = test_client.post("/orders/swap/" + str(order_id1), params=params)
     assert response.status_code == status.HTTP_201_CREATED
     assert get_clients_count() == 2
     assert len(get_orders_by_client_id(client_id1)) == 0
-    assert len(get_orders_by_client_name("New client"+str(new_client_id))) == 1
+    assert len(get_orders_by_client_name("New client" + str(new_client_id))) == 1
 
 
 def test_swap_orders_client_should_return_404_status_code_when_order_does_not_exist():
@@ -666,9 +670,9 @@ def test_swap_orders_client_should_return_404_status_code_when_order_does_not_ex
     new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
     add_order(new_order)
     add_order_to_client(new_order, get_client_by_id(client_id1))
-    new_client_id = client_id1+10
+    new_client_id = client_id1 + 10
     params = {'client_id': new_client_id}
-    response = test_client.post("/orders/swap/"+str(order_id1+10), params=params)
+    response = test_client.post("/orders/swap/" + str(order_id1 + 10), params=params)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -678,7 +682,12 @@ def test_swap_orders_client_should_remove_owner_from_order_when_query_parameter_
     new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
     add_order(new_order)
     add_order_to_client(new_order, get_client_by_id(client_id1))
-    response = test_client.post("/orders/swap/"+str(order_id1))
+    response = test_client.post("/orders/swap/" + str(order_id1))
     assert response.status_code == status.HTTP_201_CREATED
     assert len(get_orders_by_client_id(client_id1)) == 0
     assert get_order_by_id(order_id1).client_id is None
+
+# todo: delete_clients_of_ids
+# todo: send_app_info
+# todo: change_client_password
+# todo: global_dependency tested with send_app_info

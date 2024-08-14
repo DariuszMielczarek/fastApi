@@ -2,22 +2,41 @@ import asyncio
 import base64
 import sys
 from typing import Annotated
-from fastapi import Body, FastAPI, Query, Path, Cookie, Header, Form, UploadFile, HTTPException
+from fastapi import Body, FastAPI, Query, Path, Cookie, Header, Form, UploadFile, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 import memory_package
+from blocking_list import BlockingList
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
-from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_clients_by_ids, get_orders_by_client_id
+from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_clients_by_ids, \
+    get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clientsDb, get_ordersDb
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
 from tags import Tags
 
-app = FastAPI()
+
+async def global_dependency_verify_key_common(key: Annotated[str | None, Header()] = None):
+    if key == "yek":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid key from global dependency")
+
+
+def dependency_with_yield():
+    try:
+        open_dbs()
+        yield get_clientsDb(), get_ordersDb()
+    except Exception:
+        raise
+    finally:
+        close_dbs()
+        open_dbs()
+
+
+app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depends(dependency_with_yield)])
 
 
 @app.exception_handler(NoOrderException)
@@ -159,8 +178,17 @@ async def get_orders_by_status(status_name: OrderStatus):
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "orders": return_dict})
 
 
+async def delete_of_ids_common_parameters(first: int = 0, last: int = sys.maxsize):
+    return {"first": first, "last": last}
+
+
+CommonDependencyAnnotation = Annotated[dict, Depends(delete_of_ids_common_parameters)]
+
+
 @app.delete('/orders/remove', tags=[Tags.order_delete], response_description="Number of removed orders")
-async def delete_orders_of_ids(first: int = 0, last: int = sys.maxsize):
+async def delete_orders_of_ids(commons: CommonDependencyAnnotation):
+    first = commons['first']
+    last = commons['last']
     if last < first:
         logger.warning(f"Tried to remove order with greater first id then last id")
         return JSONResponse(status_code=status.HTTP_412_PRECONDITION_FAILED,
@@ -178,12 +206,34 @@ async def delete_orders_of_ids(first: int = 0, last: int = sys.maxsize):
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "removed_count": len(orders_to_remove)})
 
 
+@app.delete('/clients/remove', tags=[Tags.order_delete], response_description="Number of removed clients")
+async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
+    first = commons['first']
+    last = commons['last']
+    if last < first:
+        logger.warning(f"Tried to remove order with greater first id then last id")
+        return JSONResponse(status_code=status.HTTP_412_PRECONDITION_FAILED,
+                            content={"message": "First id greater than last id"})
+    clients_to_remove = []
+    async with orders_lock:
+        for client in memory_package.get_clientsDb():
+            if first <= client.id <= last:
+                clients_to_remove.append(client)
+        for client in clients_to_remove:
+            for order in client.orders:
+                memory_package.remove_order(order)
+                logger.info(f"Removing order with id {order.id}")
+            remove_client(client)
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "removed_count": len(clients_to_remove)})
+
+
 @app.delete('/orders/{order_id}', tags=[Tags.order_delete])
 async def delete_order(order_id: int):
     async with orders_lock:
         removed_order = next((order for order in memory_package.get_ordersDb() if order.id == order_id), None)
         if removed_order:
             new_ordersDb = [order for order in memory_package.get_ordersDb() if order.id != order_id]
+            new_ordersDb = BlockingList(new_ordersDb)
             memory_package.set_new_ordersDb(new_ordersDb)
             logger.info(f"Removing order with id {order_id}")
             client = next((client for client in memory_package.get_clientsDb() if client.id == removed_order.client_id), None)
@@ -194,18 +244,28 @@ async def delete_order(order_id: int):
             raise NoOrderException(order_id=order_id)
 
 
+def query_parameter_extractor(q: str | None = None):
+    return q
+
+
+def query_or_cookie_extractor(q: Annotated[str, Depends(query_parameter_extractor)],
+                              ads_id: Annotated[str | None, Cookie()] = None):
+    return q if q else ads_id
+
+
 @app.get('/', tags=[Tags.order_get])
-def send_app_info(ads_id: Annotated[str | None, Cookie()] = None):
+def send_app_info(query_or_ads_id: Annotated[str, Depends(query_or_cookie_extractor)] = None):
     """
     Get info if app works and how many tasks are currently saved
 
-    **ads_id**: cookie data simulation
+    **query_or_ads_id**: query data or, if empty, cookie data
     """
-    if ads_id is not None:
-        logger.info('App info function cookies value: ' + ads_id)
+    if query_or_ads_id is not None:
+        logger.info('App info function query/cookies value: ' + query_or_ads_id)
     else:
-        logger.info('App info function called without cookies value')
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "ads_id": ads_id, "tasks_count": len(memory_package.get_ordersDb())})
+        logger.info('App info function called without query/cookies value')
+    return JSONResponse(status_code=status.HTTP_200_OK,
+                        content={"message": "Success", "query_or_ads_id": query_or_ads_id, "tasks_count": len(memory_package.get_ordersDb())})
 
 
 @app.post('/orders/swap/{order_id}', tags=[Tags.order_update])
@@ -242,12 +302,18 @@ async def swap_orders_client(order_id: int, client_id: Annotated[int | None, Que
             raise NoOrderException(order_id=order_id)
 
 
+class CommonQueryParamsClass:
+    def __init__(self, name: Annotated[str, Form()], password: Annotated[str, Form()]):
+        self.name = name
+        self.password = password
+
+
 @app.post("/login/", response_model=None, tags=[Tags.clients])
-async def login(name: Annotated[str, Form()], password: Annotated[str, Form()]) -> ClientOut | JSONResponse:
-    client = memory_package.get_client_by_name(name)
-    if client and client.password == password:
+async def login(commons: Annotated[CommonQueryParamsClass, Depends()]) -> ClientOut | JSONResponse:
+    client = memory_package.get_client_by_name(commons.name)
+    if client and client.password == commons.password:
         return ClientOut(**client.model_dump())
-    elif client and client.password != password:
+    elif client and client.password != commons.password:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Wrong password"})
     else:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Wrong name"})
@@ -255,16 +321,17 @@ async def login(name: Annotated[str, Form()], password: Annotated[str, Form()]) 
 
 @app.post("/login/set_photo", response_model=None, tags=[Tags.clients], summary="Set photo for client",
           description="With correct login parameters and file, simulates uploading photo")
-async def login_and_set_photo(name: Annotated[str, Form()], password: Annotated[str, Form()], file: UploadFile | None = None) -> JSONResponse | ClientOut:
+async def login_and_set_photo(commons: Annotated[CommonQueryParamsClass, Depends()],
+                              file: UploadFile | None = None) -> JSONResponse | ClientOut:
     if file is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Wrong photo"})
-    response = await login(name, password)
+    response = await login(commons)
     if isinstance(response, JSONResponse):
         return response
     else:
         content = file.file.read()
         content = base64.b64encode(content).decode('utf-8')
-        client = memory_package.get_client_by_name(name)
+        client = memory_package.get_client_by_name(commons.name)
         client.photo = content
         return ClientOut(**client.model_dump())
 
@@ -285,7 +352,14 @@ async def change_client_data(client_name: Annotated[str, Path()],
     return ClientOut(**updated_client.model_dump())
 
 
-@app.patch("/clients/update/password/{client_name}", response_model=None, tags=[Tags.clients])
+async def verify_key_common(verification_key: Annotated[str, Header()]):
+    if verification_key != "key":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid key")
+    return verification_key
+
+
+@app.patch("/clients/update/password/{client_name}",
+           response_model=None, tags=[Tags.clients], dependencies=[Depends(verify_key_common)])
 async def change_client_password(client_name: Annotated[str, Path()],
                                  password: Annotated[str, Query()]) -> JSONResponse | ClientOut:
     client = memory_package.get_client_by_name(client_name)

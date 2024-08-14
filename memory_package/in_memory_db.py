@@ -1,11 +1,13 @@
 import copy
 
 from pydantic import BaseModel
+
+from blocking_list import BlockingList
 from order_package import Order
 from .in_memory_vars import orders_lock
 
-ordersDb = []
-clientsDb = []
+ordersDb = BlockingList()
+clientsDb = BlockingList()
 
 
 class ClientBase(BaseModel):
@@ -30,14 +32,13 @@ class ClientInDb(BaseModel):
     id: int
 
 
-def set_new_ordersDb(new_ordersDb : list):
+def set_new_ordersDb(new_ordersDb : BlockingList):
     global ordersDb
     ordersDb = copy.deepcopy(new_ordersDb)
 
 
 async def get_all_orders_as_dict():
     async with orders_lock:
-        print(ordersDb)
         return [order.model_dump() for order in ordersDb]
 
 
@@ -88,6 +89,10 @@ def remove_order(order: Order):
     ordersDb.remove(order)
 
 
+def remove_client(client: ClientInDb):
+    ordersDb.remove(client)
+
+
 def get_next_order_id():
     return 0 if len(get_ordersDb()) == 0 else max(get_ordersDb(), key=lambda order: order.id).id + 1
 
@@ -122,3 +127,13 @@ def get_orders_by_client_name(client_name: str):
 def clear_db():
     ordersDb.clear()
     clientsDb.clear()
+
+
+def open_dbs():
+    ordersDb.unblock()
+    clientsDb.unblock()
+
+
+def close_dbs():
+    ordersDb.block()
+    clientsDb.block()
