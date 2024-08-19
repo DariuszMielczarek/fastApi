@@ -32,9 +32,14 @@ class ClientInDb(BaseModel):
     id: int
 
 
-def set_new_orders_db(new_ordersDb : BlockingList):
+def set_new_orders_db(new_ordersDb: BlockingList):
     global orders_db
     orders_db = copy.deepcopy(new_ordersDb)
+
+
+def set_new_clients_db(new_clients_db: BlockingList):
+    global clients_db
+    clients_db = copy.deepcopy(new_clients_db)
 
 
 async def get_all_orders_as_dict():
@@ -129,13 +134,11 @@ def clear_db():
     clients_db.clear()
 
 
-async def open_dbs():
-    async with orders_lock:
-        orders_db.unblock()
-        clients_db.unblock()
+def open_dbs():
+    orders_db.unblock()
+    clients_db.unblock()
 
 
-async def close_dbs():
-    async with orders_lock:
-        orders_db.block()
-        clients_db.block()
+def close_dbs():
+    orders_db.block()
+    clients_db.block()

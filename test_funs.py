@@ -33,7 +33,8 @@ async def test_global_dependency_verify_key_common_should_throw_exception_when_c
     assert exc_info.value.detail == "Invalid key from global dependency"
 
 
-def test_dependency_with_yield_should_open_yield_close_and_open_dbs():
+@pytest.mark.asyncio
+async def test_dependency_with_yield_should_open_yield_close_and_open_dbs():
     with (patch("main.open_dbs") as mock_open_dbs, patch("main.close_dbs") as mock_close_dbs,
           patch("main.get_clients_db") as mock_get_clients_db,
           patch("main.get_orders_db") as mock_get_orders_db):
@@ -43,14 +44,13 @@ def test_dependency_with_yield_should_open_yield_close_and_open_dbs():
         mock_get_orders_db.return_value = "mocked_orders_db"
 
         generator = dependency_with_yield()
-        clients_db, orders_db = next(generator)
+        async for clients_db, orders_db in generator:
+            assert clients_db == "mocked_clients_db"
+            assert orders_db == "mocked_orders_db"
         mock_open_dbs.assert_called_once()
 
-        assert clients_db == "mocked_clients_db"
-        assert orders_db == "mocked_orders_db"
-
-        with pytest.raises(StopIteration):
-            next(generator)
+        async for _ in generator:
+            pass
 
         assert mock_open_dbs.call_count == 1
         assert mock_close_dbs.call_count == 1

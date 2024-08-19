@@ -13,14 +13,16 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from starlette import status
 from starlette.requests import Request
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse, Response
 import memory_package
 from blocking_list import BlockingList
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
-from memory_package import logger, orders_lock, Client, ClientOut, clients_db, get_clients_by_ids, \
-    get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clients_db, get_orders_db, get_client_by_name
-from memory_package.in_memory_db import ClientInDb
+from memory_package import (logger, orders_lock, Client, ClientOut, get_clients_by_ids,
+                            get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clients_db, get_orders_db,
+                            get_client_by_name, increment_calls_count)
+from memory_package.in_memory_db import ClientInDb, set_new_clients_db
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
@@ -37,10 +39,13 @@ async def global_dependency_verify_key_common(key: Annotated[str | None, Header(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid key from global dependency")
 
 
-def dependency_with_yield():
+async def dependency_with_yield():
     try:
-        open_dbs()
-        yield get_clients_db(), get_orders_db()
+        async with orders_lock:
+            open_dbs()
+            clients_db = get_clients_db()
+            orders_db = get_orders_db()
+        yield clients_db, orders_db
     except Exception:
         raise
     finally:
@@ -48,6 +53,30 @@ def dependency_with_yield():
 
 
 app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depends(dependency_with_yield)])
+
+
+origins = [
+    "http://localhost",
+    "https://localhost",
+    "http://localhost:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def count_calls_and_send_counter(request: Request, call_next):
+    logger.info('Middleware called before request call')
+    response = await call_next(request)
+    if request.url.path != '/favicon.ico':
+        response.headers["calls_count"] = str(await increment_calls_count())
+    return response
 
 
 @app.exception_handler(NoOrderException)
@@ -425,9 +454,11 @@ async def change_client_data(client_name: Annotated[str, Path()],
     updated_client = Client(**client.model_dump())
     updated_client.name = name if name is not None else updated_client.name
     updated_client.password = password if password is not None else updated_client.password
+    clients_db = get_clients_db()
     for i, client in enumerate(clients_db):
         if client.name == client_name:
             clients_db[i] = updated_client
+    set_new_clients_db(clients_db)
     return ClientOut(**updated_client.model_dump())
 
 
