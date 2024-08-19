@@ -4,11 +4,14 @@ import jwt
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
-from main import app, pwd_context, SECRET_KEY, ALGORITHM
+
+from client_management_package import SECRET_KEY, ALGORITHM
+from client_management_package.passwords import pwd_context
+from main import app
 from memory_package import get_orders_count, add_order, \
     get_password_from_client_by_name, add_client, Client, get_orders_by_client_id, get_clients_count, set_calls_count
 from memory_package.in_memory_db import get_orders_by_client_name, get_next_order_id, add_order_to_client, \
-    get_clients_by_ids, get_order_by_id, get_client_by_id, get_clients_db, get_orders_db, clear_db, open_dbs, close_dbs
+    get_clients_by_ids, get_order_by_id, get_client_by_id, clear_db, open_dbs, close_dbs
 from order_package import Order, OrderStatus
 
 test_client = TestClient(app)
@@ -240,7 +243,7 @@ def test_change_client_password_should_return_404_status_code_exception_when_nam
 def test_fake_login_should_return_client_data_if_name_and_password_are_correct():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password}
-    response = test_client.post("/login/", data=data)
+    response = test_client.post("clients/fake_login/", data=data)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['name'] == client1.name
 
@@ -248,14 +251,14 @@ def test_fake_login_should_return_client_data_if_name_and_password_are_correct()
 def test_fake_login_should_return_401_status_code_when_password_is_incorrect():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password + "1"}
-    response = test_client.post("/login/", data=data)
+    response = test_client.post("clients/fake_login/", data=data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_fake_login_should_return_404_status_code_when_name_is_incorrect():
     local_add_client(client1)
     data = {"name": client1.name + "1", "password": client1.password}
-    response = test_client.post("/login/", data=data)
+    response = test_client.post("clients/fake_login/", data=data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -263,7 +266,7 @@ def test_fake_login_and_set_photo_should_return_updated_client_data():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password}
     files = {'file': open('test_image.png', 'rb')}
-    response = test_client.post("/login/set_photo", data=data, files=files)
+    response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['name'] == client1.name
     assert response.json()['photo'] != str()
@@ -272,7 +275,7 @@ def test_fake_login_and_set_photo_should_return_updated_client_data():
 def test_fake_login_and_set_photo_should_return_404_status_code_when_no_file_was_sent():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password}
-    response = test_client.post("/login/set_photo", data=data)
+    response = test_client.post("clients/login_set_photo", data=data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -280,7 +283,7 @@ def test_fake_login_and_set_photo_should_return_401_status_code_when_password_is
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password + "1"}
     files = {'file': open('test_image.png', 'rb')}
-    response = test_client.post("/login/set_photo", data=data, files=files)
+    response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -288,7 +291,7 @@ def test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_inc
     local_add_client(client1)
     data = {"name": client1.name + "1", "password": client1.password}
     files = {'file': open('test_image.png', 'rb')}
-    response = test_client.post("/login/set_photo", data=data, files=files)
+    response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 

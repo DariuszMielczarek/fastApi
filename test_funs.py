@@ -7,10 +7,14 @@ import pytest
 from fastapi import HTTPException
 from starlette import status
 from starlette.testclient import TestClient
+
+from client_management_package import create_access_token, SECRET_KEY, ALGORITHM
+from client_management_package.passwords import pwd_context
+from dependencies import verify_key_common, delete_of_ids_common_parameters, query_parameter_extractor, \
+    get_current_client
 from exceptions import WrongDeltaException
-from main import global_dependency_verify_key_common, dependency_with_yield, app, delete_of_ids_common_parameters, \
-    query_parameter_extractor, query_or_cookie_extractor, verify_key_common, hash_password, pwd_context, \
-    verify_password, create_access_token, ALGORITHM, SECRET_KEY, get_current_client
+from main import (global_dependency_verify_key_common, dependency_with_yield, app, query_or_cookie_extractor,
+                  hash_password, verify_password)
 from memory_package import clear_db, Client, open_dbs, add_client, close_dbs
 
 
@@ -47,9 +51,9 @@ async def test_global_dependency_verify_key_common_should_throw_exception_when_c
 
 @pytest.mark.asyncio
 async def test_dependency_with_yield_should_open_yield_close_and_open_dbs():
-    with (patch("main.open_dbs") as mock_open_dbs, patch("main.close_dbs") as mock_close_dbs,
-          patch("main.get_clients_db") as mock_get_clients_db,
-          patch("main.get_orders_db") as mock_get_orders_db):
+    with (patch("dependencies.open_dbs") as mock_open_dbs, patch("dependencies.close_dbs") as mock_close_dbs,
+          patch("dependencies.get_clients_db") as mock_get_clients_db,
+          patch("dependencies.get_orders_db") as mock_get_orders_db):
         mock_open_dbs.return_value = None
         mock_close_dbs.return_value = None
         mock_get_clients_db.return_value = "mocked_clients_db"
