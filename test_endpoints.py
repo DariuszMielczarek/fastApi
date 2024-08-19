@@ -2,11 +2,11 @@ from datetime import datetime
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
-from main import app
-from memory_package import get_orders_count, add_order, ordersDb, clientsDb, \
+from main import app, pwd_context
+from memory_package import get_orders_count, add_order, orders_db, clients_db, \
     get_password_from_client_by_name, add_client, Client, get_orders_by_client_id, get_clients_count
 from memory_package.in_memory_db import get_orders_by_client_name, get_next_order_id, add_order_to_client, \
-    get_clients_by_ids, get_order_by_id, get_client_by_id, get_clientsDb, get_ordersDb, clear_db, open_dbs
+    get_clients_by_ids, get_order_by_id, get_client_by_id, get_clients_db, get_orders_db, clear_db, open_dbs
 from order_package import Order, OrderStatus
 
 test_client = TestClient(app)
@@ -15,15 +15,16 @@ order1 = Order(id=0, description='Order1', creation_date=datetime.now(), client_
 order2 = Order(id=1, description='Order2', creation_date=datetime.now(), client_id=None)
 name1 = "Client"
 name2 = "Test"
+name3 = "333"
 password_list = ["abc", "def"]
 client1 = Client(name=name1, password='abc')
 client2 = Client(name=name2, password='abc')
+client3 = Client(name=name3, password='abc')
 
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
     clear_db()
-    open_dbs()
 
 
 def test_send_app_info_should_return_ok_response():
@@ -49,6 +50,19 @@ def test_send_app_info_should_send_back_correct_number_of_orders():
     response = test_client.get("/")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["tasks_count"] == get_orders_count()
+
+
+def test_send_app_info_should_return_ok_response_when_correct_global_dependency_key():
+    headers = {'key': 'key'}
+    response = test_client.get("/", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['message'] == 'Success'
+
+
+def test_send_app_info_should_return_401_status_code_when_incorrect_global_dependency_key():
+    headers = {'key': 'yek'}
+    response = test_client.get("/", headers=headers)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_add_client_without_task_should_return_added_client_data():
@@ -79,11 +93,11 @@ def test_add_client_without_task_should_add_client_with_correct_password():
     params = {"client_name1": name1, "passes": password_list}
     response = test_client.post("clients/add", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert get_password_from_client_by_name(name1) == "".join(password_list)
+    assert pwd_context.verify("".join(password_list), get_password_from_client_by_name(name1))
     params = {"client_name1": name2}
     response = test_client.post("/clients/add", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert get_password_from_client_by_name(name2) == "123"
+    assert pwd_context.verify("123", get_password_from_client_by_name(name2))
 
 
 def test_add_client_without_task_should_return_409_status_code_when_client_name_not_unique():
@@ -198,7 +212,7 @@ def test_change_client_password_should_return_404_status_code_exception_when_nam
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_login_should_return_client_data_if_name_and_password_are_correct():
+def test_fake_login_should_return_client_data_if_name_and_password_are_correct():
     add_client(client1)
     data = {"name": client1.name, "password": client1.password}
     response = test_client.post("/login/", data=data)
@@ -206,21 +220,21 @@ def test_login_should_return_client_data_if_name_and_password_are_correct():
     assert response.json()['name'] == client1.name
 
 
-def test_login_should_return_401_status_code_when_password_is_incorrect():
+def test_fake_login_should_return_401_status_code_when_password_is_incorrect():
     add_client(client1)
     data = {"name": client1.name, "password": client1.password + "1"}
     response = test_client.post("/login/", data=data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_login_should_return_404_status_code_when_name_is_incorrect():
+def test_fake_login_should_return_404_status_code_when_name_is_incorrect():
     add_client(client1)
     data = {"name": client1.name + "1", "password": client1.password}
     response = test_client.post("/login/", data=data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_login_and_set_photo_should_return_updated_client_data():
+def test_fake_login_and_set_photo_should_return_updated_client_data():
     add_client(client1)
     data = {"name": client1.name, "password": client1.password}
     files = {'file': open('test_image.png', 'rb')}
@@ -230,14 +244,14 @@ def test_login_and_set_photo_should_return_updated_client_data():
     assert response.json()['photo'] != str()
 
 
-def test_login_and_set_photo_should_return_404_status_code_when_no_file_was_sent():
+def test_fake_login_and_set_photo_should_return_404_status_code_when_no_file_was_sent():
     add_client(client1)
     data = {"name": client1.name, "password": client1.password}
     response = test_client.post("/login/set_photo", data=data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_login_and_set_photo_should_return_401_status_code_when_password_is_incorrect():
+def test_fake_login_and_set_photo_should_return_401_status_code_when_password_is_incorrect():
     add_client(client1)
     data = {"name": client1.name, "password": client1.password + "1"}
     files = {'file': open('test_image.png', 'rb')}
@@ -245,7 +259,7 @@ def test_login_and_set_photo_should_return_401_status_code_when_password_is_inco
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect():
+def test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect():
     add_client(client1)
     data = {"name": client1.name + "1", "password": client1.password}
     files = {'file': open('test_image.png', 'rb')}
@@ -687,9 +701,65 @@ def test_swap_orders_client_should_remove_owner_from_order_when_query_parameter_
     assert len(get_orders_by_client_id(client_id1)) == 0
     assert get_order_by_id(order_id1).client_id is None
 
-# todo: delete_clients_of_ids
-# todo: send_app_info
+
+def test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled():
+    client_id = add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id))
+    order_id2 = get_next_order_id()
+    new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id))
+    response = test_client.delete("/clients/remove")
+    assert response.status_code == status.HTTP_200_OK
+    assert get_orders_count() == 0
+    assert get_clients_count() == 0
+    assert response.json()['removed_count'] == 1
+
+
+def test_delete_clients_of_ids_should_remove_all_orders_with_ids_between_given():
+    add_client(client1)
+    client_id2 = add_client(client2)
+    add_client(client3)
+    params = {"first": client_id2, "last": client_id2}
+    response = test_client.delete("/clients/remove", params=params)
+    assert response.status_code == status.HTTP_200_OK
+    assert get_clients_count() == 2
+    assert response.json()['removed_count'] == 1
+
+
+def test_delete_clients_of_ids_should_return_412_status_code_when_first_id_greater_than_last_id_query_parameter():
+    add_client(client1)
+    params = {"first": 2, "last": 1}
+    response = test_client.delete("/clients/remove", params=params)
+    assert response.status_code == status.HTTP_412_PRECONDITION_FAILED
+
+
+def test_delete_clients_of_ids_should_remove_all_removed_client_orders():
+    client_id1 = add_client(client1)
+    client_id2 = add_client(client2)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    order_id2 = get_next_order_id()
+    new_order = Order(id=order_id2, description="order2", client_id=client_id2, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id2))
+    order_id3 = get_next_order_id()
+    new_order = Order(id=order_id3, description="order3", client_id=client_id1, creation_date=datetime.now())
+    add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    params = {"first": client_id1, "last": client_id1}
+    response = test_client.delete("/clients/remove", params=params)
+    assert response.status_code == status.HTTP_200_OK
+    assert get_orders_count() == 1
+    assert get_order_by_id(order_id1) is None
+    assert get_order_by_id(order_id2) is not None
+
+
 # todo: change_client_password
-# todo: global_dependency tested with send_app_info
 # todo: get_orders_by_current_client
 # todo: real_login

@@ -3,7 +3,6 @@ import base64
 import sys
 from datetime import timedelta, datetime
 from typing import Annotated
-
 import jwt
 from fastapi import Body, FastAPI, Query, Path, Cookie, Header, Form, UploadFile, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
@@ -19,8 +18,8 @@ import memory_package
 from blocking_list import BlockingList
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
-from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_clients_by_ids, \
-    get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clientsDb, get_ordersDb, get_client_by_name
+from memory_package import logger, orders_lock, Client, ClientOut, clients_db, get_clients_by_ids, \
+    get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clients_db, get_orders_db, get_client_by_name
 from memory_package.in_memory_db import ClientInDb
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
@@ -41,12 +40,11 @@ async def global_dependency_verify_key_common(key: Annotated[str | None, Header(
 def dependency_with_yield():
     try:
         open_dbs()
-        yield get_clientsDb(), get_ordersDb()
+        yield get_clients_db(), get_orders_db()
     except Exception:
         raise
     finally:
         close_dbs()
-        open_dbs()
 
 
 app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depends(dependency_with_yield)])
@@ -108,7 +106,6 @@ async def add_client_without_task(client_name1: Annotated[str, Query(min_length=
         client = memory_package.get_client_by_name(full_name)
         if client is None:
             password = "".join(passwords) if passwords else "123"
-            print(password)
             memory_package.add_client(Client(name=full_name, password=hash_password(password)))
             logger.info(f"Created new client without orders with name {full_name}")
             return ClientOut(name=full_name)
@@ -119,14 +116,14 @@ async def add_client_without_task(client_name1: Annotated[str, Query(min_length=
 
 @app.get('/clients/', response_model=list[ClientOut], tags=[Tags.clients])
 async def get_clients(count: Annotated[int | None, Query(gt=0)] = None):
-    return memory_package.get_clientsDb(count)
+    return memory_package.get_clients_db(count)
 
 
 @app.post('/orders/{client_id}', tags=[Tags.order_create])
 async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body()] = None):
     if orderDto is None:
         logger.warning('No order')
-        raise NoOrderException()
+        raise NoOrderException(order_id=client_id)
     async with orders_lock:
         new_order = map_orderDto_to_Order(orderDto, client_id)
         client = get_clients_by_ids([client_id])
@@ -141,15 +138,7 @@ async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
-def decode_token(token: str):
-    client_data = get_client_by_name(token[:-5])
-    if client_data:
-        return ClientOut(**client_data.model_dump())
 
 
 def hash_password(password: str):
@@ -228,7 +217,8 @@ async def get_orders_by_client(client_id: int):
     if orders is not None:
         logger.info(f"Return user''s {client_id} orders list")
         return JSONResponse(status_code=status.HTTP_200_OK,
-                            content={"message": "Success", "orders": [jsonable_encoder(order.model_dump()) for order in orders]})
+                            content={"message": "Success",
+                                     "orders": [jsonable_encoder(order.model_dump()) for order in orders]})
     else:
         logger.warning(f"No user with id: {client_id}")
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect id"})
@@ -236,9 +226,10 @@ async def get_orders_by_client(client_id: int):
 
 @app.get('/orders/get/status/{status_name}', tags=[Tags.order_get])
 async def get_orders_by_status(status_name: OrderStatus):
-    async with orders_lock:
+    async with (orders_lock):
         logger.info(f"Return orders with status = {status_name.value} list")
-        return_dict = [jsonable_encoder(order.model_dump()) for order in memory_package.get_ordersDb() if order.status == status_name]
+        return_dict =[jsonable_encoder(order.model_dump())
+                      for order in memory_package.get_orders_db() if order.status == status_name]
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "orders": return_dict})
 
 
@@ -259,15 +250,16 @@ async def delete_orders_of_ids(commons: CommonDependencyAnnotation):
                             content={"message": "First id greater than last id"})
     orders_to_remove = []
     async with orders_lock:
-        for order in memory_package.get_ordersDb():
+        for order in memory_package.get_orders_db():
             if first <= order.id <= last:
                 orders_to_remove.append(order)
         for order in orders_to_remove:
             memory_package.remove_order(order)
             logger.info(f"Removing order with id {order.id}")
-            client = next((client for client in memory_package.get_clientsDb() if client.id == order.client_id), None)
+            client = next((client for client in memory_package.get_clients_db() if client.id == order.client_id), None)
             client.orders.remove(order)
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "removed_count": len(orders_to_remove)})
+    return JSONResponse(status_code=status.HTTP_200_OK,
+                        content={"message": "Success", "removed_count": len(orders_to_remove)})
 
 
 @app.delete('/clients/remove', tags=[Tags.order_delete], response_description="Number of removed clients")
@@ -280,7 +272,7 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
                             content={"message": "First id greater than last id"})
     clients_to_remove = []
     async with orders_lock:
-        for client in memory_package.get_clientsDb():
+        for client in memory_package.get_clients_db():
             if first <= client.id <= last:
                 clients_to_remove.append(client)
         for client in clients_to_remove:
@@ -288,19 +280,20 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
                 memory_package.remove_order(order)
                 logger.info(f"Removing order with id {order.id}")
             remove_client(client)
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success", "removed_count": len(clients_to_remove)})
+    return JSONResponse(status_code=status.HTTP_200_OK,
+                        content={"message": "Success", "removed_count": len(clients_to_remove)})
 
 
 @app.delete('/orders/{order_id}', tags=[Tags.order_delete])
 async def delete_order(order_id: int):
     async with orders_lock:
-        removed_order = next((order for order in memory_package.get_ordersDb() if order.id == order_id), None)
+        removed_order = next((order for order in memory_package.get_orders_db() if order.id == order_id), None)
         if removed_order:
-            new_ordersDb = [order for order in memory_package.get_ordersDb() if order.id != order_id]
+            new_ordersDb = [order for order in memory_package.get_orders_db() if order.id != order_id]
             new_ordersDb = BlockingList(new_ordersDb)
-            memory_package.set_new_ordersDb(new_ordersDb)
+            memory_package.set_new_orders_db(new_ordersDb)
             logger.info(f"Removing order with id {order_id}")
-            client = next((client for client in memory_package.get_clientsDb() if client.id == removed_order.client_id), None)
+            client = next((client for client in memory_package.get_clients_db() if client.id == removed_order.client_id), None)
             client.orders.remove(removed_order)
             return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success"})
         else:
@@ -312,7 +305,7 @@ def query_parameter_extractor(q: str | None = None):
     return q
 
 
-def query_or_cookie_extractor(q: Annotated[str, Depends(query_parameter_extractor)],
+def query_or_cookie_extractor(q: Annotated[str | None, Depends(query_parameter_extractor)],
                               ads_id: Annotated[str | None, Cookie()] = None):
     return q if q else ads_id
 
@@ -329,7 +322,7 @@ def send_app_info(query_or_ads_id: Annotated[str, Depends(query_or_cookie_extrac
     else:
         logger.info('App info function called without query/cookies value')
     return JSONResponse(status_code=status.HTTP_200_OK,
-                        content={"message": "Success", "query_or_ads_id": query_or_ads_id, "tasks_count": len(memory_package.get_ordersDb())})
+                        content={"message": "Success", "query_or_ads_id": query_or_ads_id, "tasks_count": len(memory_package.get_orders_db())})
 
 
 @app.post('/orders/swap/{order_id}', tags=[Tags.order_update])
@@ -346,14 +339,14 @@ async def swap_orders_client(order_id: int, client_id: Annotated[int | None, Que
                 }
             })] = None):
     async with orders_lock:
-        swapped_order = next((order for order in memory_package.get_ordersDb() if order.id == order_id), None)
+        swapped_order = next((order for order in memory_package.get_orders_db() if order.id == order_id), None)
         if swapped_order:
             logger.info(f"Swapping client of order with id {order_id}")
-            old_client = next((client for client in memory_package.get_clientsDb() if client.id == swapped_order.client_id), None)
+            old_client = next((client for client in memory_package.get_clients_db() if client.id == swapped_order.client_id), None)
             old_client.orders.remove(swapped_order)
             swapped_order.client_id = client_id
             if client_id is not None:
-                new_client = next((client for client in memory_package.get_clientsDb() if client.id == swapped_order.client_id), None)
+                new_client = next((client for client in memory_package.get_clients_db() if client.id == swapped_order.client_id), None)
                 if new_client is None:
                     memory_package.add_client(Client(name="New client"+str(client_id), password=hash_password("123"), orders=[swapped_order]))
                     logger.info('Created new client')
@@ -380,15 +373,11 @@ class Token(BaseModel):
 @app.post("/token")
 async def real_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     client: ClientInDb = get_client_by_name(form_data.username)
-    print(form_data)
-    print(client)
     if not client:
         raise HTTPException(status_code=400, detail="Incorrect username")
     hashed_password = hash_password(form_data.password)
-    print(hashed_password)
-    if not verify_password(hashed_password, client.password):
+    if not verify_password(client.password, hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect password")
-    print(client)
 
     access_token_expires = timedelta(minutes=EXPIRE_TIME_TOKEN)
     access_token = create_access_token(
@@ -411,8 +400,8 @@ async def fake_login(commons: Annotated[CommonQueryParamsClass, Depends()]) -> C
 
 @app.post("/login/set_photo", response_model=None, tags=[Tags.clients], summary="Set photo for client",
           description="With correct login parameters and file, simulates uploading photo")
-async def login_and_set_photo(commons: Annotated[CommonQueryParamsClass, Depends()],
-                              file: UploadFile | None = None) -> JSONResponse | ClientOut:
+async def fake_login_and_set_photo(commons: Annotated[CommonQueryParamsClass, Depends()],
+                                   file: UploadFile | None = None) -> JSONResponse | ClientOut:
     if file is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Wrong photo"})
     response = await fake_login(commons)
@@ -436,9 +425,9 @@ async def change_client_data(client_name: Annotated[str, Path()],
     updated_client = Client(**client.model_dump())
     updated_client.name = name if name is not None else updated_client.name
     updated_client.password = password if password is not None else updated_client.password
-    for i, client in enumerate(clientsDb):
+    for i, client in enumerate(clients_db):
         if client.name == client_name:
-            clientsDb[i] = updated_client
+            clients_db[i] = updated_client
     return ClientOut(**updated_client.model_dump())
 
 
