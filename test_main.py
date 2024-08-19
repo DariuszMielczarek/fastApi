@@ -691,3 +691,5 @@ def test_swap_orders_client_should_remove_owner_from_order_when_query_parameter_
 # todo: send_app_info
 # todo: change_client_password
 # todo: global_dependency tested with send_app_info
+# todo: get_orders_by_current_client
+# todo: real_login

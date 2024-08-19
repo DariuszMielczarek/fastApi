@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Tests for get_clients(), add_client_without_task() and send_app_info() functions">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Dependencies in application - global, with yield, local, subdependencies, as class">
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_main.py" afterDir="false" />
     </list>
@@ -47,72 +46,119 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "HTTP Request.queueAppScratch | #1.executor": "Run",
-    "HTTP Request.queueAppScratch | #10.executor": "Run",
-    "HTTP Request.queueAppScratch | #11.executor": "Run",
-    "HTTP Request.queueAppScratch | #12.executor": "Run",
-    "HTTP Request.queueAppScratch | #13.executor": "Run",
-    "HTTP Request.queueAppScratch | #14.executor": "Run",
-    "HTTP Request.queueAppScratch | #15.executor": "Run",
-    "HTTP Request.queueAppScratch | #16.executor": "Run",
-    "HTTP Request.queueAppScratch | #17.executor": "Run",
-    "HTTP Request.queueAppScratch | #18.executor": "Run",
-    "HTTP Request.queueAppScratch | #19.executor": "Run",
-    "HTTP Request.queueAppScratch | #2.executor": "Run",
-    "HTTP Request.queueAppScratch | #20.executor": "Run",
-    "HTTP Request.queueAppScratch | #21.executor": "Run",
-    "HTTP Request.queueAppScratch | #22.executor": "Run",
-    "HTTP Request.queueAppScratch | #23.executor": "Run",
-    "HTTP Request.queueAppScratch | #24.executor": "Run",
-    "HTTP Request.queueAppScratch | #25.executor": "Run",
-    "HTTP Request.queueAppScratch | #26.executor": "Run",
-    "HTTP Request.queueAppScratch | #3.executor": "Run",
-    "HTTP Request.queueAppScratch | #4.executor": "Run",
-    "HTTP Request.queueAppScratch | #5.executor": "Run",
-    "HTTP Request.queueAppScratch | #6.executor": "Run",
-    "HTTP Request.queueAppScratch | #7.executor": "Run",
-    "HTTP Request.queueAppScratch | #8.executor": "Run",
-    "HTTP Request.queueAppScratch | #9.executor": "Run",
-    "HTTP Request.scratch | #1.executor": "Run",
-    "Python tests.Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_name.executor": "Run",
-    "Python tests.Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_password.executor": "Debug",
-    "Python tests.Python tests for test_main.test_add_client_without_task_should_return_409_when_client_name_not_unique.executor": "Run",
-    "Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_when_client_name1_parameter_not_filled.executor": "Run",
-    "Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_when_query_parameters_values_incorrect.executor": "Run",
-    "Python tests.Python tests for test_main.test_add_client_without_task_should_return_added_client_data.executor": "Run",
-    "Python tests.Python tests for test_main.test_add_client_without_task_should_return_sth_when_query_parameters_values_incorrect.executor": "Run",
-    "Python tests.Python tests for test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database.executor": "Run",
-    "Python tests.Python tests for test_main.test_change_client_data_should_return_updated_client_data.executor": "Run",
-    "Python tests.Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values.executor": "Run",
-    "Python tests.Python tests for test_main.test_get_clients_should_return_correct_clients_data.executor": "Run",
-    "Python tests.Python tests for test_main.test_send_app_info_should_send_back_cookies_sent_by_client.executor": "Run",
-    "Python tests.Python tests in test_main.py.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/davre/nefryt_lds",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;HTTP Request.queueAppScratch | #1.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #10.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #11.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #12.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #13.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #14.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #15.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #16.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #17.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #18.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #19.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #2.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #20.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #21.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #22.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #23.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #24.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #25.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #26.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #3.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #4.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #5.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #6.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #7.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #8.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.queueAppScratch | #9.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.scratch | #1.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_name.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_password.executor&quot;: &quot;Debug&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_return_409_when_client_name_not_unique.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_status_code_when_client_name1_parameter_not_filled.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_when_client_name1_parameter_not_filled.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_when_query_parameters_values_incorrect.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_return_added_client_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_add_client_without_task_should_return_sth_when_query_parameters_values_incorrect.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_change_client_data_should_return_404_status_code_when_name_not_in_database.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_change_client_data_should_return_updated_client_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_change_client_password_should_raise_404_status_code_exception_when_name_not_in_database.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_create_order_should_create_new_client_when_client_with_given_client_id_does_not_exist.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_create_order_should_raise_no_order_exception_when_no_order_was_sent.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_create_order_should_return_422_status_code_when_json_body_is_invalid.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_create_order_should_return_ok_response.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_create_order_should_save_order_with_given_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_delete_order_should_remove_order.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_delete_order_should_return_404_status_code_if_order_does_not_exist.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_delete_orders_of_ids_should_remove_all_orders_with_ids_between_given.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_delete_orders_of_ids_should_remove_ell_orders_when_query_parameters_not_filled.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_delete_orders_of_ids_should_return_412_status_code_when_first_id_greater_than_last_id_query_parameter.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_delete_orders_of_ids_should_return_removed_orders_count.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_delete_orders_of_ids_should_return_removed_orders_count_and_remove_all_orders_when_query_parameters_not_filled.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_clients_should_return_correct_clients_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_by_client_should_return_list_with_created_users_orders.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_by_status_should_return_empty_list_when_no_created_orders_with_given_status.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_by_status_should_return_list_with_created_orders_with_given_status.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_counts_from_header_should_return_404_status_code_when_all_ids_are_incorrect.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_counts_from_header_should_return_404_status_code_when_header_is_in_wrong_format.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_counts_from_header_should_return_422_status_code_when_header_is_empty.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_counts_from_header_should_return_list_ignoring_users_that_do_not_exist.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_counts_from_header_should_return_list_with_counted_given_users_orders.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_should_return_404_status_code_when_client_id_is_incorrect.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_should_return_404_status_code_when_status_is_incorrect.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_should_return_422_status_code_when_status_is_incorrect.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_should_return_accepted_status_code.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_should_return_empty_list_when_no_orders_created.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_should_return_empty_list_when_no_users_orders_created.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_get_orders_should_return_list_with_created_orders.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_login_and_set_photo_should_return_404_status_code_when_no_file_was_sent.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_login_and_set_photo_should_return_updated_client_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_login_should_return_client_data_if_name_and_password_are_correct.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_process_next_order_should_change_order_status.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_process_next_order_should_return_404_status_code_when_no_awaiting_order.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_process_next_order_should_return_first_order_id.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_process_order_of_id_should_return_404_status_code_and_message_when_order_does_not_exist.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_process_order_of_id_should_return_409_status_code_and_message_when_order_status_is_not_received.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_process_order_of_id_should_return_422_status_code_when_incorrect_order_id_value.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_process_order_of_id_should_return_processed_order_id_and_message.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_send_app_info_should_send_back_cookies_sent_by_client.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_send_app_info_should_send_back_correct_number_of_orders.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_swap_orders_client_should_change_task_owner.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_swap_orders_client_should_change_task_owner_and_create_new_client.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_swap_orders_client_should_remove_owner_from_order_when_query_parameter_is_empty.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_main.test_swap_orders_client_should_return_404_status_code_when_order_does_not_exist.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_main.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_main.test_get_clients_should_return_correct_number_of_clients.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/davre/nefryt_lds&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "HTTP Request"
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;HTTP Request&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\order_package" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values">
-    <configuration name="Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_password" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python tests.Python tests in test_main.py">
+    <configuration name="Python tests for test_main.test_add_client_without_task_should_return_422_status_code_when_client_name1_parameter_not_filled" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -124,11 +170,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_add_client_without_task_should_add_client_with_correct_password&quot;" />
+      <option name="_new_target" value="&quot;test_main.test_add_client_without_task_should_return_422_status_code_when_client_name1_parameter_not_filled&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_main.test_change_client_data_should_return_404_status_code_when_name_not_in_database" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -140,11 +186,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database&quot;" />
+      <option name="_new_target" value="&quot;test_main.test_change_client_data_should_return_404_status_code_when_name_not_in_database&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_change_client_data_should_return_updated_client_data" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_main.test_process_next_order_should_return_404_status_code_when_no_awaiting_order" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -156,11 +202,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_change_client_data_should_return_updated_client_data&quot;" />
+      <option name="_new_target" value="&quot;test_main.test_process_next_order_should_return_404_status_code_when_no_awaiting_order&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests in test_main.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -172,33 +218,35 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_change_client_data_should_update_name_and_password_to_correct_values&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/test_main.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_get_clients_should_return_correct_clients_data" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest for test_main.test_get_clients_should_return_correct_number_of_clients" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="$PROJECT_DIR$/.venv/Scripts/python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_parameters" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_get_clients_should_return_correct_clients_data&quot;" />
+      <option name="_new_target" value="&quot;test_main.test_get_clients_should_return_correct_number_of_clients&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Python tests for test_main.test_add_client_without_task_should_add_client_with_correct_password" />
-        <item itemvalue="Python tests.Python tests for test_main.test_change_client_data_should_update_name_and_password_to_correct_values" />
-        <item itemvalue="Python tests.Python tests for test_main.test_change_client_data_should_raise_404_exception_when_name_not_in_database" />
-        <item itemvalue="Python tests.Python tests for test_main.test_change_client_data_should_return_updated_client_data" />
-        <item itemvalue="Python tests.Python tests for test_main.test_get_clients_should_return_correct_clients_data" />
+        <item itemvalue="Python tests.Python tests in test_main.py" />
+        <item itemvalue="Python tests.Python tests for test_main.test_process_next_order_should_return_404_status_code_when_no_awaiting_order" />
+        <item itemvalue="Python tests.Python tests for test_main.test_change_client_data_should_return_404_status_code_when_name_not_in_database" />
+        <item itemvalue="Python tests.pytest for test_main.test_get_clients_should_return_correct_number_of_clients" />
+        <item itemvalue="Python tests.Python tests for test_main.test_add_client_without_task_should_return_422_status_code_when_client_name1_parameter_not_filled" />
       </list>
     </recent_temporary>
   </component>
@@ -230,7 +278,7 @@
       <workItem from="1723407177933" duration="838000" />
       <workItem from="1723452846848" duration="100000" />
       <workItem from="1723455061260" duration="9142000" />
-      <workItem from="1723531540029" duration="9395000" />
+      <workItem from="1723531540029" duration="40624000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -344,7 +392,47 @@
       <option name="project" value="LOCAL" />
       <updated>1723539376967</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Tests for login(), login_and_set_photo(), change_client_data(), change_client_password()">
+      <option name="closed" value="true" />
+      <created>1723543713461</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1723543713461</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Tests for create_order(), process_next_order(), process_order_of_id()">
+      <option name="closed" value="true" />
+      <created>1723550583476</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1723550583476</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Tests for get_orders(), get_orders_counts_from_header(), get_orders_by_client() and get_orders_by_status()">
+      <option name="closed" value="true" />
+      <created>1723553384330</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1723553384330</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Tests for swap_orders_client(), delete_orders_of_ids() and delete_order()">
+      <option name="closed" value="true" />
+      <created>1723624576154</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1723624576154</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Dependencies in application - global, with yield, local, subdependencies, as class">
+      <option name="closed" value="true" />
+      <created>1723660417197</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1723660417197</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -376,9 +464,15 @@
     <MESSAGE value="Datetime in Order objects, PUT &amp; PATCH methods to update client data" />
     <MESSAGE value="Change client - order relation from client_name to client_id" />
     <MESSAGE value="Tests for get_clients(), add_client_without_task() and send_app_info() functions" />
-    <option name="LAST_COMMIT_MESSAGE" value="Tests for get_clients(), add_client_without_task() and send_app_info() functions" />
+    <MESSAGE value="Tests for login(), login_and_set_photo(), change_client_data(), change_client_password()" />
+    <MESSAGE value="Tests for create_order(), process_next_order(), process_order_of_id()" />
+    <MESSAGE value="Tests for get_orders(), get_orders_counts_from_header(), get_orders_by_client() and get_orders_by_status()" />
+    <MESSAGE value="Tests for swap_orders_client(), delete_orders_of_ids() and delete_order()" />
+    <MESSAGE value="Dependencies in application - global, with yield, local, subdependencies, as class" />
+    <option name="LAST_COMMIT_MESSAGE" value="Dependencies in application - global, with yield, local, subdependencies, as class" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1723540259665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1723660218784" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/fastApiQueueApp$pytest_for_test_main_test_get_clients_should_return_correct_number_of_clients.coverage" NAME="pytest for test_main.test_get_clients_should_return_correct_number_of_clients Coverage Results" MODIFIED="1723659766579" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

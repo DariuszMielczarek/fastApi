@@ -1,10 +1,17 @@
 import asyncio
 import base64
 import sys
+from datetime import timedelta, datetime
 from typing import Annotated
+
+import jwt
 from fastapi import Body, FastAPI, Query, Path, Cookie, Header, Form, UploadFile, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jwt import InvalidTokenError
+from passlib.context import CryptContext
+from pydantic import BaseModel
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -13,11 +20,17 @@ from blocking_list import BlockingList
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
 from memory_package import logger, orders_lock, Client, ClientOut, clientsDb, get_clients_by_ids, \
-    get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clientsDb, get_ordersDb
+    get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clientsDb, get_ordersDb, get_client_by_name
+from memory_package.in_memory_db import ClientInDb
 from orders_management_package import OrderDTO
 from order_package import Order, OrderStatus
 from orders_management_package.process_order import process_order
 from tags import Tags
+
+
+SECRET_KEY = '78d7f56af55814792894c1bda1d2c534ded902fb1fce39f3ff301b02f9181bfc'
+ALGORITHM = 'HS256'
+EXPIRE_TIME_TOKEN = 5000
 
 
 async def global_dependency_verify_key_common(key: Annotated[str | None, Header()] = None):
@@ -95,7 +108,8 @@ async def add_client_without_task(client_name1: Annotated[str, Query(min_length=
         client = memory_package.get_client_by_name(full_name)
         if client is None:
             password = "".join(passwords) if passwords else "123"
-            memory_package.add_client(Client(name=full_name, password=password))
+            print(password)
+            memory_package.add_client(Client(name=full_name, password=hash_password(password)))
             logger.info(f"Created new client without orders with name {full_name}")
             return ClientOut(name=full_name)
         else:
@@ -117,7 +131,7 @@ async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body
         new_order = map_orderDto_to_Order(orderDto, client_id)
         client = get_clients_by_ids([client_id])
         if len(client) == 0:
-            memory_package.add_client(Client(name="New client" + str(client_id), password="123", orders=[new_order]))
+            memory_package.add_client(Client(name="New client" + str(client_id), password=hash_password("123"), orders=[new_order]))
             logger.info('Created new client')
         else:
             memory_package.add_order_to_client(new_order, client[0])
@@ -126,8 +140,58 @@ async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
 
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+def decode_token(token: str):
+    client_data = get_client_by_name(token[:-5])
+    if client_data:
+        return ClientOut(**client_data.model_dump())
+
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    expire = datetime.now() + expires_delta
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+async def get_current_client(token: Annotated[str, Depends(oauth2_scheme)]):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login authentication data",
+                                headers={"WWW-Authenticate": "Bearer"})
+    except InvalidTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login authentication data",
+                            headers={"WWW-Authenticate": "Bearer"})
+    client = get_client_by_name(username)
+    if not client:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login authentication data",
+                            headers={"WWW-Authenticate": "Bearer"})
+    return client
+
+
+@app.get('/orders/get/current', tags=[Tags.order_get])
+async def get_orders_by_current_client(current_user: Annotated[ClientOut, Depends(get_current_client)]):
+    return current_user.orders
+
+
 @app.get('/orders/get/all', response_model=list[Order], status_code=status.HTTP_202_ACCEPTED, tags=[Tags.order_get])
-async def get_orders():
+async def get_orders(token: Annotated[str, Depends(oauth2_scheme)]):
     logger.info('Return all orders list ')
     return_dict = await memory_package.get_all_orders_as_dict()
     return return_dict
@@ -291,7 +355,7 @@ async def swap_orders_client(order_id: int, client_id: Annotated[int | None, Que
             if client_id is not None:
                 new_client = next((client for client in memory_package.get_clientsDb() if client.id == swapped_order.client_id), None)
                 if new_client is None:
-                    memory_package.add_client(Client(name="New client"+str(client_id), password="123", orders=[swapped_order]))
+                    memory_package.add_client(Client(name="New client"+str(client_id), password=hash_password("123"), orders=[swapped_order]))
                     logger.info('Created new client')
                 else:
                     new_client.orders.append(swapped_order)
@@ -308,8 +372,34 @@ class CommonQueryParamsClass:
         self.password = password
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+@app.post("/token")
+async def real_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    client: ClientInDb = get_client_by_name(form_data.username)
+    print(form_data)
+    print(client)
+    if not client:
+        raise HTTPException(status_code=400, detail="Incorrect username")
+    hashed_password = hash_password(form_data.password)
+    print(hashed_password)
+    if not verify_password(hashed_password, client.password):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    print(client)
+
+    access_token_expires = timedelta(minutes=EXPIRE_TIME_TOKEN)
+    access_token = create_access_token(
+        data={"sub": client.name}, expires_delta=access_token_expires
+    )
+
+    return Token(access_token=access_token, token_type="bearer")
+
+
 @app.post("/login/", response_model=None, tags=[Tags.clients])
-async def login(commons: Annotated[CommonQueryParamsClass, Depends()]) -> ClientOut | JSONResponse:
+async def fake_login(commons: Annotated[CommonQueryParamsClass, Depends()]) -> ClientOut | JSONResponse:
     client = memory_package.get_client_by_name(commons.name)
     if client and client.password == commons.password:
         return ClientOut(**client.model_dump())
@@ -325,7 +415,7 @@ async def login_and_set_photo(commons: Annotated[CommonQueryParamsClass, Depends
                               file: UploadFile | None = None) -> JSONResponse | ClientOut:
     if file is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Wrong photo"})
-    response = await login(commons)
+    response = await fake_login(commons)
     if isinstance(response, JSONResponse):
         return response
     else:
