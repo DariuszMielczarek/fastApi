@@ -1,13 +1,25 @@
 import sys
+from datetime import datetime, timedelta
 from unittest.mock import patch
+
+import jwt
 import pytest
 from fastapi import HTTPException
 from starlette import status
 from starlette.testclient import TestClient
-
+from exceptions import WrongDeltaException
 from main import global_dependency_verify_key_common, dependency_with_yield, app, delete_of_ids_common_parameters, \
-    query_parameter_extractor, query_or_cookie_extractor, verify_key_common
-from memory_package import clear_db
+    query_parameter_extractor, query_or_cookie_extractor, verify_key_common, hash_password, pwd_context, \
+    verify_password, create_access_token, ALGORITHM, SECRET_KEY, get_current_client
+from memory_package import clear_db, Client, open_dbs, add_client, close_dbs
+
+
+def local_add_client(client: Client):
+    open_dbs()
+    client_id = add_client(client)
+    close_dbs()
+    return client_id
+
 
 test_client = TestClient(app)
 
@@ -127,8 +139,76 @@ async def test_verify_key_common_should_throw_exception_when_called_with_incorre
     assert exc_info.value.detail == "Invalid key"
 
 
+def test_hash_password_should_return_given_password_hash():
+    password = 'password123ABC'
+    hashed_password = hash_password(password)
+    assert pwd_context.verify(password, hashed_password)
 
-# todo: hash_password
-# todo: verify_password
-# todo: create_access_token
-# todo: get_current_client
+
+def test_verify_password_should_return_true_when_passwords_are_the_same():
+    password = 'password123ABC'
+    hashed_password = pwd_context.hash(password)
+    assert verify_password(password, hashed_password)
+
+
+def test_verify_password_should_return_false_when_passwords_are_different():
+    password = 'password123ABC'
+    hashed_password = pwd_context.hash(password)
+    assert not verify_password(password + '1', hashed_password)
+
+
+def test_create_access_token_should_return_valid_access_token():
+    start_time = datetime.now()
+    data_dict = {"sub": "Client1"}
+    token = create_access_token(data_dict)
+    decoded_data = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    assert decoded_data["sub"] == "Client1"
+    assert datetime.fromtimestamp(decoded_data["exp"]) > start_time
+
+
+def test_create_access_token_should_throw_exception_when_expires_delta_is_less_than_zero():
+    data_dict = {"sub": "Client1"}
+    with pytest.raises(WrongDeltaException):
+        create_access_token(data_dict, timedelta(-10))
+
+
+@pytest.mark.asyncio
+async def test_get_current_client_should_return_expected_client():
+    name = 'name1'
+    client = Client(name=name, password='abc')
+    local_add_client(client)
+    fake_token = {'sub': name}
+    fake_encoded_token = jwt.encode(fake_token, SECRET_KEY, algorithm=ALGORITHM)
+    returned_client = await get_current_client(fake_encoded_token)
+    assert returned_client.name == client.name
+
+
+@pytest.mark.asyncio
+async def test_get_current_client_should_throw_exception_when_no_username_in_token():
+    name = 'name1'
+    fake_token = {'not_sub': name}
+    fake_encoded_token = jwt.encode(fake_token, SECRET_KEY, algorithm=ALGORITHM)
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_client(fake_encoded_token)
+    assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.asyncio
+async def test_get_current_client_should_throw_exception_when_token_is_invalid():
+    name = 'name1'
+    fake_token = {'sub': name}
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_client(str(fake_token))
+    assert exc_info.value.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+@pytest.mark.asyncio
+async def test_get_current_client_should_throw_exception_when_no_client_with_username_from_token():
+    name = 'name1'
+    client = Client(name=name, password='abc')
+    local_add_client(client)
+    fake_token = {'sub': name+'2'}
+    fake_encoded_token = jwt.encode(fake_token, SECRET_KEY, algorithm=ALGORITHM)
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_client(fake_encoded_token)
+    assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND

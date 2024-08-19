@@ -1,8 +1,10 @@
 from datetime import datetime
+
+import jwt
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
-from main import app, pwd_context
+from main import app, pwd_context, SECRET_KEY, ALGORITHM
 from memory_package import get_orders_count, add_order, \
     get_password_from_client_by_name, add_client, Client, get_orders_by_client_id, get_clients_count, set_calls_count
 from memory_package.in_memory_db import get_orders_by_client_name, get_next_order_id, add_order_to_client, \
@@ -432,13 +434,16 @@ def test_process_order_of_id_should_return_422_status_code_when_incorrect_order_
 
 
 def test_get_orders_should_return_accepted_status_code():
-    response = test_client.get("/orders/get/all")
-    print(response.headers['calls_count'])
+    encoded_token = jwt.encode({'subs': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearer {encoded_token}"}
+    response = test_client.get("/orders/get/all", headers=header)
     assert response.status_code == status.HTTP_202_ACCEPTED
 
 
 def test_get_orders_should_return_empty_list_when_no_orders_created():
-    response = test_client.get("/orders/get/all")
+    encoded_token = jwt.encode({'subs': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearer {encoded_token}"}
+    response = test_client.get("/orders/get/all", headers=header)
     assert response.status_code == status.HTTP_202_ACCEPTED
     assert len(response.json()) == 0
 
@@ -453,7 +458,9 @@ def test_get_orders_should_return_list_with_created_orders():
     new_order = Order(id=order_id, description="order2", client_id=client_id, creation_date=datetime.now())
     local_add_order(new_order)
     add_order_to_client(new_order, get_clients_by_ids([client_id])[0])
-    response = test_client.get("/orders/get/all")
+    encoded_token = jwt.encode({'subs': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearer {encoded_token}"}
+    response = test_client.get("/orders/get/all", headers=header)
     assert response.status_code == status.HTTP_202_ACCEPTED
     orders = response.json()
     assert len(orders) == 2
@@ -784,6 +791,102 @@ def test_delete_clients_of_ids_should_remove_all_removed_client_orders():
     assert get_order_by_id(order_id2) is not None
 
 
-# todo: change_client_password
-# todo: get_orders_by_current_client
-# todo: real_login
+def test_get_orders_by_current_client_should_return_current_clients_orders():
+    client_id1 = local_add_client(client1)
+    order_id1 = get_next_order_id()
+    new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
+    local_add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    order_id2 = get_next_order_id()
+    new_order = Order(id=order_id2, description="order2", client_id=client_id1, creation_date=datetime.now())
+    local_add_order(new_order)
+    add_order_to_client(new_order, get_client_by_id(client_id1))
+    encoded_token = jwt.encode({'sub': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearer {encoded_token}"}
+    response = test_client.get("/orders/get/current", headers=header)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 2
+
+
+def test_get_orders_by_current_client_should_return_401_status_code_when_incorrect_header():
+    local_add_client(client1)
+    encoded_token = jwt.encode({'sub': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearerxxx {encoded_token}"}
+    response = test_client.get("/orders/get/current", headers=header)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_get_orders_by_current_client_should_return_400_status_code_when_no_username_in_header():
+    encoded_token = jwt.encode({'subs': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearer {encoded_token}"}
+    response = test_client.get("/orders/get/current", headers=header)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_get_orders_by_current_client_should_return_406_status_code_when_token_is_incorrect():
+    encoded_token = jwt.encode({'sub': client1.name}, SECRET_KEY + 'A', algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearer {encoded_token}"}
+    response = test_client.get("/orders/get/current", headers=header)
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+def test_get_orders_by_current_client_should_return_406_status_code_when_client_does_not_exist():
+    encoded_token = jwt.encode({'sub': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
+    header = {"Authorization": f"Bearer {encoded_token}"}
+    response = test_client.get("/orders/get/current", headers=header)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_real_login_should_return_valid_token():
+    local_add_client(client1)
+    form = {"username": client1.name, "password": client1.password}
+    response = test_client.post("/token", data=form)
+    token = response.json()['access_token']
+    decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    assert response.status_code == status.HTTP_200_OK
+    assert decoded_token['sub'] == client1.name
+
+
+def test_real_login_should_return_404_status_code_when_username_is_incorrect():
+    local_add_client(client1)
+    form = {"username": client2.name, "password": client1.password}
+    response = test_client.post("/token", data=form)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_real_login_should_return_401_status_code_when_password_is_incorrect():
+    local_add_client(client1)
+    form = {"username": client1.name, "password": 'xyz'}
+    response = test_client.post("/token", data=form)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_change_client_password_should_return_client_data_after_password_change():
+    local_add_client(client1)
+    header = {'verification-key': 'key'}
+    params = {'password': 'new'}
+    response = test_client.patch("/clients/update/password/"+client1.name, headers=header, params=params)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['name'] == client1.name
+
+
+def test_change_client_password_should_return_401_status_code_when_incorrect_verification_key():
+    local_add_client(client1)
+    header = {'verification-key': 'key2'}
+    response = test_client.patch("/clients/update/password/"+client1.name, headers=header)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_change_client_password_should_return_404_status_code_when_name_does_not_exist():
+    local_add_client(client1)
+    header = {'verification-key': 'key'}
+    response = test_client.patch("/clients/update/password/"+client2.name, headers=header)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_change_client_password_should_return_client_data_and_not_change_password_when_password_not_given():
+    local_add_client(client1)
+    header = {'verification-key': 'key'}
+    response = test_client.patch("/clients/update/password/"+client1.name, headers=header)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['name'] == client1.name

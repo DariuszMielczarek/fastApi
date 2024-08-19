@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse, Response
 import memory_package
 from blocking_list import BlockingList
-from exceptions import NoOrderException
+from exceptions import NoOrderException, WrongDeltaException
 from mapper import map_orderDto_to_Order
 from memory_package import (logger, orders_lock, Client, ClientOut, get_clients_by_ids,
                             get_orders_by_client_id, remove_client, open_dbs, close_dbs, get_clients_db, get_orders_db,
@@ -157,7 +157,8 @@ async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body
         new_order = map_orderDto_to_Order(orderDto, client_id)
         client = get_clients_by_ids([client_id])
         if len(client) == 0:
-            memory_package.add_client(Client(name="New client" + str(client_id), password=hash_password("123"), orders=[new_order]))
+            memory_package.add_client(
+                Client(name="New client" + str(client_id), password=hash_password("123"), orders=[new_order]))
             logger.info('Created new client')
         else:
             memory_package.add_order_to_client(new_order, client[0])
@@ -179,8 +180,11 @@ def verify_password(plain_password, hashed_password):
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    if expires_delta and expires_delta < timedelta(0):
+        raise WrongDeltaException('Expires delta is less than zero')
     to_encode = data.copy()
-    expire = datetime.now() + expires_delta
+    expire = datetime.now() + expires_delta if expires_delta is not None \
+        else datetime.now() + timedelta(EXPIRE_TIME_TOKEN)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -191,14 +195,14 @@ async def get_current_client(token: Annotated[str, Depends(oauth2_scheme)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if not username:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login authentication data",
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No username in token",
                                 headers={"WWW-Authenticate": "Bearer"})
     except InvalidTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login authentication data",
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Invalid token error",
                             headers={"WWW-Authenticate": "Bearer"})
     client = get_client_by_name(username)
     if not client:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login authentication data",
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No client with given username",
                             headers={"WWW-Authenticate": "Bearer"})
     return client
 
@@ -403,10 +407,10 @@ class Token(BaseModel):
 async def real_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     client: ClientInDb = get_client_by_name(form_data.username)
     if not client:
-        raise HTTPException(status_code=400, detail="Incorrect username")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect username")
     hashed_password = hash_password(form_data.password)
     if not verify_password(client.password, hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect password")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
 
     access_token_expires = timedelta(minutes=EXPIRE_TIME_TOKEN)
     access_token = create_access_token(
@@ -471,10 +475,9 @@ async def verify_key_common(verification_key: Annotated[str, Header()]):
 @app.patch("/clients/update/password/{client_name}",
            response_model=None, tags=[Tags.clients], dependencies=[Depends(verify_key_common)])
 async def change_client_password(client_name: Annotated[str, Path()],
-                                 password: Annotated[str, Query()]) -> JSONResponse | ClientOut:
+                                 password: Annotated[str | None, Query()] = None) -> JSONResponse | ClientOut:
     client = memory_package.get_client_by_name(client_name)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
-    client.password = password if password is not None else client.password
+    client.password = password if password is not None else hash_password(client.password)
     return ClientOut(**client.model_dump())
-
