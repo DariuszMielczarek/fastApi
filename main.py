@@ -16,7 +16,81 @@ from memory_package.in_memory_db import ClientInDb
 from tags import Tags
 
 
-app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depends(dependency_with_yield)])
+description = """
+FastApiQueueApp possibilities:
+## Clients management
+####    Update client data
+####    Delete one client
+####    Delete multiple clients
+####    Get clients
+####    Add client without orders
+
+## Security management
+####    Fake login to account
+####    Fake login and setting account data
+####    Real login with JWT Token
+
+## Orders management
+####    Swap order's owners
+####    Delete multiple orders
+####    Delete one order
+####    Get orders:
+      by status
+      by multiple clients
+      by one client
+      all
+      by current client (with tokens)
+####    Process next order
+####    Process any order
+####    Create new order
+"""
+
+
+tags_metadata = [
+    {
+        "name": Tags.clients,
+        "description": "Operations with clients & with login + authentication",
+    },
+    {
+        "name": "process",
+        "description": "Processing orders which simulates usage of asynchronous code",
+    },
+    {
+        "name": "create",
+        "description": "Creating new orders and sometimes also new clients",
+    },
+    {
+        "name": "get",
+        "description": "Getting orders list with response body",
+    },
+    {
+        "name": "remove",
+        "description": "Deleting existing orders",
+    },
+    {
+        "name": "update",
+        "description": "Now, only swapping owners, maybe more later...",
+    },
+]
+
+
+app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depends(dependency_with_yield)],
+              title='FastApiQueueApp',
+              description=description,
+              summary='Test - training app with FastApi',
+              version='v1.5.1',
+              contact={
+                  'name': 'DM',
+                  'email': '240752@edu.p.lodz.pl',
+              },
+              license_info={
+                  'name': 'License: ???',
+                  'identifier': 'MIT'
+              },
+              openapi_tags=tags_metadata,
+              openapi_url="/api/v1/openapi.json",
+              redoc_url=None
+              )
 app.include_router(routers.client_router)
 app.include_router(routers.order_router)
 

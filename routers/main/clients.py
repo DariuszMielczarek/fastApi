@@ -20,7 +20,7 @@ async def change_client_password(client_name: Annotated[str, Path()],
     client = memory_package.get_client_by_name(client_name)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
-    client.password = password if password is not None else hash_password(client.password)
+    client.password = hash_password(password) if password is not None else client.password
     return ClientOut(**client.model_dump())
 
 
