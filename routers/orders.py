@@ -1,16 +1,18 @@
 import asyncio
 from typing import Annotated
-from fastapi import APIRouter, Query, Depends, Header, Body, Path, HTTPException
+from fastapi import APIRouter, Query, Depends, Header, Body, Path, HTTPException, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from starlette import status
 from starlette.responses import JSONResponse, Response
 import memory_package
+from background_tasks import send_notification_simulator
 from blocking_list import BlockingList
 from client_management_package import hash_password
 from dependencies import CommonDependencyAnnotation, oauth2_scheme, get_current_client
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
-from memory_package import orders_lock, Client, logger, get_orders_by_client_id, get_clients_by_ids, ClientOut
+from memory_package import orders_lock, Client, logger, get_orders_by_client_id, get_clients_by_ids, ClientOut, \
+    get_client_by_id
 from order_package import OrderStatus, Order
 from orders_management_package import OrderDTO, process_order
 from tags import Tags
@@ -19,11 +21,12 @@ order_router = APIRouter(prefix="/orders")
 
 
 @order_router.post('/swap/{order_id}', tags=[Tags.order_update])
-async def swap_orders_client(order_id: int, client_id: Annotated[int | None, Query(openapi_examples={
+async def swap_orders_client(background_tasks: BackgroundTasks,
+        order_id: int, client_id: Annotated[int | None, Query(openapi_examples={
                 "normal": {
                     "summary": "Normal example",
                     "description": "A **normal** item works correctly.",
-                    "value": "Bob"
+                    "value": "0"
                 },
                 "converted": {
                     "summary": "Empty example",
@@ -35,13 +38,14 @@ async def swap_orders_client(order_id: int, client_id: Annotated[int | None, Que
         swapped_order = next((order for order in memory_package.get_orders_db() if order.id == order_id), None)
         if swapped_order:
             logger.info(f"Swapping client of order with id {order_id}")
-            old_client = next((client for client in memory_package.get_clients_db() if client.id == swapped_order.client_id), None)
+            old_client = get_client_by_id(swapped_order.client_id)
             old_client.orders.remove(swapped_order)
             swapped_order.client_id = client_id
             if client_id is not None:
                 new_client = next((client for client in memory_package.get_clients_db() if client.id == swapped_order.client_id), None)
                 if new_client is None:
                     memory_package.add_client(Client(name="New client"+str(client_id), password=hash_password("123"), orders=[swapped_order]))
+                    background_tasks.add_task(send_notification_simulator, name="New client" + str(client_id))
                     logger.info('Created new client')
                 else:
                     new_client.orders.append(swapped_order)
@@ -165,19 +169,23 @@ async def process_next_order() -> JSONResponse:
 
 
 @order_router.post('/{client_id}', tags=[Tags.order_create])
-async def create_order(client_id: int, orderDto: Annotated[OrderDTO | None, Body()] = None):
+async def create_order(background_tasks: BackgroundTasks, client_id: int, orderDto: Annotated[OrderDTO | None, Body()] = None):
     if orderDto is None:
         logger.warning('No order')
         raise NoOrderException(order_id=client_id)
     async with orders_lock:
-        new_order = map_orderDto_to_Order(orderDto, client_id)
-        client = get_clients_by_ids([client_id])
-        if len(client) == 0:
-            memory_package.add_client(
-                Client(name="New client" + str(client_id), password=hash_password("123"), orders=[new_order]))
+        client = get_client_by_id(client_id)
+        if not client:
+            new_order = map_orderDto_to_Order(orderDto)
+            assigned_client_id = memory_package.add_client(
+                Client(name="New client" + str(client_id), password=hash_password("123")))
+            new_order.client_id = assigned_client_id
+            memory_package.add_order_to_client(new_order, get_client_by_id(assigned_client_id))
+            background_tasks.add_task(send_notification_simulator, name="New client" + str(client_id))
             logger.info('Created new client')
         else:
-            memory_package.add_order_to_client(new_order, client[0])
+            new_order = map_orderDto_to_Order(orderDto, client_id)
+            memory_package.add_order_to_client(new_order, client)
             logger.info('Added new order to the existing client')
         memory_package.add_order(new_order)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})

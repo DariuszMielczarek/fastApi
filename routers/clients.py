@@ -1,11 +1,10 @@
 import base64
 from typing import Annotated
-
-from fastapi import APIRouter, Depends, Path, Query, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Path, Query, HTTPException, UploadFile, BackgroundTasks
 from starlette import status
 from starlette.responses import JSONResponse, Response
-
 import memory_package
+from background_tasks import send_notification_simulator
 from client_management_package import hash_password
 from dependencies import verify_key_common, CommonQueryParamsClass, CommonDependencyAnnotation
 from memory_package import ClientOut, Client, get_clients_db, set_new_clients_db, logger, orders_lock, remove_client
@@ -99,7 +98,8 @@ async def get_clients(count: Annotated[int | None, Query(gt=0)] = None):
 
 
 @client_router.post('/add', response_model_exclude_unset=True, response_model=None)
-async def add_client_without_task(client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")],
+async def add_client_without_task(background_tasks: BackgroundTasks,
+                                  client_name1: Annotated[str, Query(min_length=3, max_length=30, pattern="^.+$", title="Main name", description="Obligatory part of the name")],
                                 client_name2: Annotated[str | None, Query(min_length=3, max_length=30, pattern="^.+$", deprecated=True)] = None,
                                 passwords: Annotated[list[str] | None, Query(alias="passes")] = None) -> Response | ClientOut:
     full_name = client_name1 if client_name2 is None else client_name1 + client_name2
@@ -109,6 +109,7 @@ async def add_client_without_task(client_name1: Annotated[str, Query(min_length=
             password = "".join(passwords) if passwords else "123"
             memory_package.add_client(Client(name=full_name, password=hash_password(password)))
             logger.info(f"Created new client without orders with name {full_name}")
+            background_tasks.add_task(send_notification_simulator, name=full_name)
             return ClientOut(name=full_name)
         else:
             logger.warning('Client already exists')

@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 import jwt
 from pydantic import BaseModel
 
-from client_management_package.token_vars import EXPIRE_TIME_TOKEN, SECRET_KEY, ALGORITHM
+from client_management_package.main.token_vars import EXPIRE_TIME_TOKEN, SECRET_KEY, ALGORITHM
 from exceptions import WrongDeltaException
 
 

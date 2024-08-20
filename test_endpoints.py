@@ -4,9 +4,7 @@ import jwt
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
-
-from client_management_package import SECRET_KEY, ALGORITHM
-from client_management_package.passwords import pwd_context
+from client_management_package import SECRET_KEY, ALGORITHM, pwd_context
 from main import app
 from memory_package import get_orders_count, add_order, \
     get_password_from_client_by_name, add_client, Client, get_orders_by_client_id, get_clients_count, set_calls_count
@@ -327,7 +325,7 @@ def test_create_order_should_create_new_client_when_client_with_given_client_id_
     assert len(clients_orders) == 1
     assert clients_orders[0].description == order_data['description']
     assert clients_orders[0].time == order_data['time']
-    assert clients_orders[0].client_id == client_id
+    assert clients_orders[0].client_id == 0
 
 
 def test_create_order_should_return_404_status_code_when_no_order_was_sent():

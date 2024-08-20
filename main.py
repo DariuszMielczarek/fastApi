@@ -8,14 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 import memory_package
 import routers
-from client_management_package import hash_password, EXPIRE_TIME_TOKEN
-from client_management_package.passwords import verify_password
+from client_management_package import hash_password, EXPIRE_TIME_TOKEN, verify_password, create_access_token, Token
 from dependencies import query_or_cookie_extractor, global_dependency_verify_key_common, dependency_with_yield
 from exceptions import NoOrderException
 from memory_package import logger, get_client_by_name, increment_calls_count
 from memory_package.in_memory_db import ClientInDb
 from tags import Tags
-from client_management_package.token import Token, create_access_token
 
 
 app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depends(dependency_with_yield)])

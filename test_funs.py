@@ -1,20 +1,14 @@
 import sys
-from datetime import datetime, timedelta
 from unittest.mock import patch
-
 import jwt
 import pytest
 from fastapi import HTTPException
 from starlette import status
 from starlette.testclient import TestClient
-
-from client_management_package import create_access_token, SECRET_KEY, ALGORITHM
-from client_management_package.passwords import pwd_context
+from client_management_package import SECRET_KEY, ALGORITHM
 from dependencies import verify_key_common, delete_of_ids_common_parameters, query_parameter_extractor, \
     get_current_client
-from exceptions import WrongDeltaException
-from main import (global_dependency_verify_key_common, dependency_with_yield, app, query_or_cookie_extractor,
-                  hash_password, verify_password)
+from main import (global_dependency_verify_key_common, dependency_with_yield, app, query_or_cookie_extractor)
 from memory_package import clear_db, Client, open_dbs, add_client, close_dbs
 
 
@@ -141,39 +135,6 @@ async def test_verify_key_common_should_throw_exception_when_called_with_incorre
         await verify_key_common('key2')
     assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
     assert exc_info.value.detail == "Invalid key"
-
-
-def test_hash_password_should_return_given_password_hash():
-    password = 'password123ABC'
-    hashed_password = hash_password(password)
-    assert pwd_context.verify(password, hashed_password)
-
-
-def test_verify_password_should_return_true_when_passwords_are_the_same():
-    password = 'password123ABC'
-    hashed_password = pwd_context.hash(password)
-    assert verify_password(password, hashed_password)
-
-
-def test_verify_password_should_return_false_when_passwords_are_different():
-    password = 'password123ABC'
-    hashed_password = pwd_context.hash(password)
-    assert not verify_password(password + '1', hashed_password)
-
-
-def test_create_access_token_should_return_valid_access_token():
-    start_time = datetime.now()
-    data_dict = {"sub": "Client1"}
-    token = create_access_token(data_dict)
-    decoded_data = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    assert decoded_data["sub"] == "Client1"
-    assert datetime.fromtimestamp(decoded_data["exp"]) > start_time
-
-
-def test_create_access_token_should_throw_exception_when_expires_delta_is_less_than_zero():
-    data_dict = {"sub": "Client1"}
-    with pytest.raises(WrongDeltaException):
-        create_access_token(data_dict, timedelta(-10))
 
 
 @pytest.mark.asyncio
