@@ -8,7 +8,7 @@ import memory_package
 from background_tasks import send_notification_simulator
 from blocking_list import BlockingList
 from client_management_package import hash_password
-from dependencies import CommonDependencyAnnotation, oauth2_scheme, get_current_client
+from dependencies_package.main.dependencies import CommonDependencyAnnotation, oauth2_scheme, get_current_client
 from exceptions import NoOrderException
 from mapper import map_orderDto_to_Order
 from memory_package import orders_lock, Client, logger, get_orders_by_client_id, get_clients_by_ids, ClientOut, \

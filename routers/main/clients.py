@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse, Response
 import memory_package
 from background_tasks import send_notification_simulator
 from client_management_package import hash_password
-from dependencies import verify_key_common, CommonQueryParamsClass, CommonDependencyAnnotation
+from dependencies_package.main.dependencies import verify_key_common, CommonQueryParamsClass, CommonDependencyAnnotation
 from memory_package import ClientOut, Client, get_clients_db, set_new_clients_db, logger, orders_lock, remove_client
 from tags import Tags
 

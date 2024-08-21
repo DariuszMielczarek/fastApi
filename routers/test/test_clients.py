@@ -4,7 +4,7 @@ import pytest
 from starlette import status
 from starlette.testclient import TestClient
 from client_management_package.main.passwords import pwd_context, hash_password
-from main import app
+from app.main.main import app
 from memory_package import Client, open_dbs, add_client, close_dbs, get_password_from_client_by_name, get_next_order_id, \
     add_order, add_order_to_client, get_client_by_id, get_orders_count, get_clients_count, get_order_by_id, clear_db, \
     set_calls_count
@@ -142,7 +142,7 @@ def test_fake_login_should_return_404_status_code_when_name_is_incorrect():
 def test_fake_login_and_set_photo_should_return_updated_client_data():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password}
-    files = {'file': open('test_image.png', 'rb')}
+    files = {'file': open('./static/test_image.png', 'rb')}
     response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['name'] == client1.name
@@ -159,7 +159,7 @@ def test_fake_login_and_set_photo_should_return_404_status_code_when_no_file_was
 def test_fake_login_and_set_photo_should_return_401_status_code_when_password_is_incorrect():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password + "1"}
-    files = {'file': open('test_image.png', 'rb')}
+    files = {'file': open('./static/test_image.png', 'rb')}
     response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -167,7 +167,7 @@ def test_fake_login_and_set_photo_should_return_401_status_code_when_password_is
 def test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect():
     local_add_client(client1)
     data = {"name": client1.name + "1", "password": client1.password}
-    files = {'file': open('test_image.png', 'rb')}
+    files = {'file': open('./static/test_image.png', 'rb')}
     response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 

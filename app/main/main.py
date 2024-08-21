@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from typing import Annotated
 from fastapi import FastAPI, HTTPException, Depends
@@ -6,10 +7,12 @@ from starlette import status
 from starlette.requests import Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 import memory_package
 import routers
 from client_management_package import hash_password, EXPIRE_TIME_TOKEN, verify_password, create_access_token, Token
-from dependencies import query_or_cookie_extractor, global_dependency_verify_key_common, dependency_with_yield
+from dependencies_package.main.dependencies import (query_or_cookie_extractor, global_dependency_verify_key_common,
+                                                    dependency_with_yield)
 from exceptions import NoOrderException
 from memory_package import logger, get_client_by_name, increment_calls_count
 from memory_package.in_memory_db import ClientInDb
@@ -93,6 +96,7 @@ app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depend
               )
 app.include_router(routers.client_router)
 app.include_router(routers.order_router)
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
 
 origins = [

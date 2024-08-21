@@ -4,7 +4,7 @@ import pytest
 from starlette import status
 from starlette.testclient import TestClient
 from client_management_package.main.token_vars import SECRET_KEY, ALGORITHM
-from main import app
+from app.main.main import app
 from memory_package import Client, open_dbs, add_client, close_dbs, add_order, get_next_order_id, add_order_to_client, \
     get_client_by_id, get_orders_by_client_id, get_order_by_id, get_clients_count, set_calls_count
 from memory_package.in_memory_db import get_orders_by_client_name, get_clients_by_ids, get_orders_count, clear_db
