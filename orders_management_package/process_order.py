@@ -1,6 +1,5 @@
 from asyncio import sleep, create_task
-
-from memory_package import orders_lock, logger, clients_db
+from memory_package import orders_lock, logger, db
 from order_package import Order, OrderStatus
 
 
@@ -21,9 +20,8 @@ async def process_simulator(order: Order):
 
 
 def replace_order_in_client_object(order: Order):
-    for client in clients_db:
+    for client in db.get_clients_db():
         if client.id == order.client_id:
             for i, c_order in enumerate(client.orders):
                 if c_order.id == order.id:
                     client.orders[i] = order
-

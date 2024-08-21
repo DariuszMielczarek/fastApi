@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import jwt
 import pytest
-
 from app.main import exceptions
 from client_management_package import SECRET_KEY, ALGORITHM, create_access_token
 

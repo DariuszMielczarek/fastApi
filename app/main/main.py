@@ -11,15 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # noqa: E402
-import memory_package
-import routers
+from routers import client_router, order_router
 from client_management_package import hash_password, EXPIRE_TIME_TOKEN, verify_password, create_access_token, Token
 from dependencies_package.main.dependencies import (query_or_cookie_extractor, global_dependency_verify_key_common,
                                                     dependency_with_yield)
 from app.main.exceptions import NoOrderException
-from memory_package import logger, get_client_by_name, increment_calls_count
-from memory_package.in_memory_db import ClientInDb
+from memory_package import logger, increment_calls_count
+from memory_package.in_memory_db.in_memory_db import ClientInDb
 from app.main.tags import Tags
+import memory_package
 
 description = """
 FastApiQueueApp possibilities:
@@ -94,8 +94,8 @@ app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depend
               openapi_url="/api/v1/openapi.json",
               redoc_url=None
               )
-app.include_router(routers.client_router)
-app.include_router(routers.order_router)
+app.include_router(client_router)
+app.include_router(order_router)
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
 origins = [
@@ -105,7 +105,7 @@ origins = [
 ]
 
 app.add_middleware(
-    CORSMiddleware,
+    CORSMiddleware,  # type: ignore
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
@@ -123,7 +123,7 @@ async def count_calls_and_send_counter(request: Request, call_next):
 
 
 @app.exception_handler(NoOrderException)
-async def no_order_exception_handler(request: Request, exc: NoOrderException):
+async def no_order_exception_handler(_request: Request, exc: NoOrderException):
     return JSONResponse(
         status_code=404,
         content={"message": exc.message if exc.message is not None else "ID: " + str(exc.order_id) + ") No order"},
@@ -143,12 +143,12 @@ def send_app_info(query_or_ads_id: Annotated[str, Depends(query_or_cookie_extrac
         logger.info('App info function called without query/cookies value')
     return JSONResponse(status_code=status.HTTP_200_OK,
                         content={"message": "Success", "query_or_ads_id": query_or_ads_id,
-                                 "tasks_count": len(memory_package.get_orders_db())})
+                                 "tasks_count": len(memory_package.db.get_orders_db())})
 
 
 @app.post("/token")
 async def real_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    client: ClientInDb = get_client_by_name(form_data.username)
+    client: ClientInDb = memory_package.db.get_client_by_name(form_data.username)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect username")
     hashed_password = hash_password(form_data.password)

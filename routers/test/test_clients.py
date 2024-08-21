@@ -1,49 +1,22 @@
 import os
-from datetime import datetime
-
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
-from client_management_package.main.passwords import pwd_context, hash_password
+from client_management_package.main.passwords import pwd_context
 from app.main.main import app
-from memory_package import Client, open_dbs, add_client, close_dbs, get_password_from_client_by_name, get_next_order_id, \
-    add_order, add_order_to_client, get_client_by_id, get_orders_count, get_clients_count, get_order_by_id, clear_db, \
-    set_calls_count
-from order_package import Order
-
+from memory_package import set_calls_count
+from commons import (client1, client2, client3, name1, name2, password_list, local_add_order_to_db_and_client,
+                     local_add_client)
+import memory_package
+from routers.main import clients
 
 test_client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    clear_db()
+    memory_package.reset_db()
     set_calls_count(0)
-
-
-order1 = Order(id=0, description='Order1', creation_date=datetime.now(), client_id=None)
-order2 = Order(id=1, description='Order2', creation_date=datetime.now(), client_id=None)
-name1 = "Client"
-name2 = "Test"
-name3 = "333"
-password_list = ["abc", "def"]
-client1 = Client(name=name1, password=hash_password('abc'))
-client2 = Client(name=name2, password=hash_password('abc'))
-client3 = Client(name=name3, password=hash_password('abc'))
-
-
-def local_add_client(client: Client):
-    open_dbs()
-    client_id = add_client(client)
-    close_dbs()
-    return client_id
-
-
-def local_add_order(order: Order):
-    open_dbs()
-    order_id = add_order(order)
-    close_dbs()
-    return order_id
 
 
 def test_change_client_password_should_update_password_to_correct_values():
@@ -53,7 +26,7 @@ def test_change_client_password_should_update_password_to_correct_values():
     headers = {'verification-key': 'key'}
     response = test_client.patch("/clients/update/password/" + client1.name, params=params, headers=headers)
     assert response.status_code == status.HTTP_200_OK
-    assert pwd_context.verify(new_password, get_password_from_client_by_name(client1.name))
+    assert pwd_context.verify(new_password, memory_package.db.get_password_from_client_by_name(client1.name))
 
 
 def test_change_client_password_should_return_client_data_after_password_change():
@@ -85,7 +58,7 @@ def test_change_client_password_should_return_client_data_and_not_change_passwor
     response = test_client.patch("/clients/update/password/"+client1.name, headers=header)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['name'] == client1.name
-    assert pwd_context.verify('abc', get_password_from_client_by_name(client1.name))
+    assert pwd_context.verify('abc', memory_package.db.get_password_from_client_by_name(client1.name))
 
 
 def test_change_client_data_should_return_updated_client_data():
@@ -104,11 +77,11 @@ def test_change_client_data_should_update_name_and_password_to_correct_values():
     params = {"name": new_client_name, "password": new_password1}
     response = test_client.put("/clients/update/all/" + client1.name, params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert get_password_from_client_by_name(new_client_name) == new_password1
+    assert memory_package.db.get_password_from_client_by_name(new_client_name) == new_password1
     params = {"password": new_password2}
     response = test_client.put("/clients/update/all/" + new_client_name, params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert get_password_from_client_by_name("NewClientName") == new_password2
+    assert memory_package.db.get_password_from_client_by_name("NewClientName") == new_password2
 
 
 def test_change_client_data_should_return_404_status_code_when_name_not_in_database():
@@ -176,20 +149,14 @@ def test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_inc
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled():
+def test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled():  # noqa: E501
     client_id = local_add_client(client1)
-    order_id1 = get_next_order_id()
-    new_order = Order(id=order_id1, description="order1", client_id=client_id, creation_date=datetime.now())
-    local_add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id(client_id))
-    order_id2 = get_next_order_id()
-    new_order = Order(id=order_id2, description="order2", client_id=client_id, creation_date=datetime.now())
-    local_add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id(client_id))
+    local_add_order_to_db_and_client(client_id, "order1")
+    local_add_order_to_db_and_client(client_id, "order2")
     response = test_client.delete("/clients/remove")
     assert response.status_code == status.HTTP_200_OK
-    assert get_orders_count() == 0
-    assert get_clients_count() == 0
+    assert memory_package.db.get_orders_count() == 0
+    assert memory_package.db.get_clients_count() == 0
     assert response.json()['removed_count'] == 1
 
 
@@ -200,7 +167,7 @@ def test_delete_clients_of_ids_should_remove_all_orders_with_ids_between_given()
     params = {"first": client_id2, "last": client_id2}
     response = test_client.delete("/clients/remove", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert get_clients_count() == 2
+    assert memory_package.db.get_clients_count() == 2
     assert response.json()['removed_count'] == 1
 
 
@@ -214,24 +181,15 @@ def test_delete_clients_of_ids_should_return_412_status_code_when_first_id_great
 def test_delete_clients_of_ids_should_remove_all_removed_client_orders():
     client_id1 = local_add_client(client1)
     client_id2 = local_add_client(client2)
-    order_id1 = get_next_order_id()
-    new_order = Order(id=order_id1, description="order1", client_id=client_id1, creation_date=datetime.now())
-    local_add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id(client_id1))
-    order_id2 = get_next_order_id()
-    new_order = Order(id=order_id2, description="order2", client_id=client_id2, creation_date=datetime.now())
-    local_add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id(client_id2))
-    order_id3 = get_next_order_id()
-    new_order = Order(id=order_id3, description="order3", client_id=client_id1, creation_date=datetime.now())
-    local_add_order(new_order)
-    add_order_to_client(new_order, get_client_by_id(client_id1))
+    order_id1 = local_add_order_to_db_and_client(client_id1, "order1")
+    order_id2 = local_add_order_to_db_and_client(client_id2, "order2")
+    local_add_order_to_db_and_client(client_id1, "order3")
     params = {"first": client_id1, "last": client_id1}
     response = test_client.delete("/clients/remove", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert get_orders_count() == 1
-    assert get_order_by_id(order_id1) is None
-    assert get_order_by_id(order_id2) is not None
+    assert memory_package.db.get_orders_count() == 1
+    assert memory_package.db.get_order_by_id(order_id1) is None
+    assert memory_package.db.get_order_by_id(order_id2) is not None
 
 
 def test_get_clients_should_return_correct_clients_data():
@@ -296,11 +254,11 @@ def test_add_client_without_task_should_add_client_with_correct_password():
     params = {"client_name1": name1, "passes": password_list}
     response = test_client.post("clients/add", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert pwd_context.verify("".join(password_list), get_password_from_client_by_name(name1))
+    assert pwd_context.verify("".join(password_list), memory_package.db.get_password_from_client_by_name(name1))
     params = {"client_name1": name2}
     response = test_client.post("/clients/add", params=params)
     assert response.status_code == status.HTTP_200_OK
-    assert pwd_context.verify("123", get_password_from_client_by_name(name2))
+    assert pwd_context.verify("123", memory_package.db.get_password_from_client_by_name(name2))
 
 
 def test_add_client_without_task_should_return_409_status_code_when_client_name_not_unique():

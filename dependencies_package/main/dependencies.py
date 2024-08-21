@@ -1,14 +1,13 @@
 import sys
 from typing import Annotated
-
 import jwt
 from fastapi import Header, HTTPException, Form, Depends, Cookie
 from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
 from starlette import status
-
 from client_management_package import SECRET_KEY, ALGORITHM
-from memory_package import get_client_by_name, orders_lock, open_dbs, get_clients_db, get_orders_db, close_dbs
+from memory_package import orders_lock
+import memory_package
 
 
 class CommonQueryParamsClass:
@@ -52,7 +51,7 @@ async def get_current_client(token: Annotated[str, Depends(oauth2_scheme)]):
     except InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Invalid token error",
                             headers={"WWW-Authenticate": "Bearer"})
-    client = get_client_by_name(username)
+    client = memory_package.db.get_client_by_name(username)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No client with given username",
                             headers={"WWW-Authenticate": "Bearer"})
@@ -67,11 +66,11 @@ async def global_dependency_verify_key_common(key: Annotated[str | None, Header(
 async def dependency_with_yield():
     try:
         async with orders_lock:
-            open_dbs()
-            clients_db = get_clients_db()
-            orders_db = get_orders_db()
+            memory_package.db.open_dbs()
+            clients_db = memory_package.db.get_clients_db()
+            orders_db = memory_package.db.get_orders_db()
         yield clients_db, orders_db
     except Exception:
         raise
     finally:
-        close_dbs()
+        memory_package.db.close_dbs()

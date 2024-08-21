@@ -6,24 +6,27 @@ from fastapi import HTTPException
 from starlette import status
 from starlette.testclient import TestClient
 from client_management_package import SECRET_KEY, ALGORITHM
+from client_package.client import Client
 from dependencies_package import (global_dependency_verify_key_common, dependency_with_yield,
                                   delete_of_ids_common_parameters, query_parameter_extractor, query_or_cookie_extractor,
                                   verify_key_common, get_current_client)
 from app.main.main import app
-from memory_package import Client, clear_db, open_dbs, add_client, close_dbs
+from memory_package import InMemoryDb, set_calls_count
+import memory_package
 
 test_client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    clear_db()
+    memory_package.db = InMemoryDb()
+    set_calls_count(0)
 
 
 def local_add_client(client: Client):
-    open_dbs()
-    client_id = add_client(client)
-    close_dbs()
+    memory_package.db.open_dbs()
+    client_id = memory_package.db.add_client(client)
+    memory_package.db.close_dbs()
     return client_id
 
 
@@ -45,10 +48,10 @@ async def test_global_dependency_verify_key_common_should_throw_exception_when_c
 
 @pytest.mark.asyncio
 async def test_dependency_with_yield_should_open_yield_close_and_open_dbs():
-    with (patch("dependencies_package.main.dependencies.open_dbs") as mock_open_dbs,
-          patch("dependencies_package.main.dependencies.close_dbs") as mock_close_dbs,
-          patch("dependencies_package.main.dependencies.get_clients_db") as mock_get_clients_db,
-          patch("dependencies_package.main.dependencies.get_orders_db") as mock_get_orders_db):
+    with (patch("dependencies_package.main.dependencies.memory_package.db.open_dbs") as mock_open_dbs,
+          patch("dependencies_package.main.dependencies.memory_package.db.close_dbs") as mock_close_dbs,
+          patch("dependencies_package.main.dependencies.memory_package.db.get_clients_db") as mock_get_clients_db,
+          patch("dependencies_package.main.dependencies.memory_package.db.get_orders_db") as mock_get_orders_db):
         mock_open_dbs.return_value = None
         mock_close_dbs.return_value = None
         mock_get_clients_db.return_value = "mocked_clients_db"

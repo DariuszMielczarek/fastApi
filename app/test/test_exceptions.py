@@ -2,14 +2,15 @@ import pytest
 from starlette import status
 from starlette.testclient import TestClient
 from app.main.main import app
-from memory_package import clear_db
+from memory_package import InMemoryDb
+import memory_package
 
 test_client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    clear_db()
+    memory_package.db = InMemoryDb()
 
 
 def test_no_order_exception_handler_should_return_404_status_code_and_message():

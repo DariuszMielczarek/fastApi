@@ -5,11 +5,10 @@ from starlette import status
 from starlette.testclient import TestClient
 from client_management_package import SECRET_KEY, ALGORITHM
 from app.main.main import app
-from memory_package import get_orders_count, add_order, \
-    add_client, Client, set_calls_count
-from memory_package.in_memory_db import clear_db, open_dbs, close_dbs
+from client_package.client import Client
+from memory_package import set_calls_count, InMemoryDb
 from order_package import Order
-
+import memory_package
 
 test_client = TestClient(app)
 
@@ -23,22 +22,22 @@ client2 = Client(name=name2, password='abc')
 
 
 def local_add_client(client: Client):
-    open_dbs()
-    client_id = add_client(client)
-    close_dbs()
+    memory_package.db.open_dbs()
+    client_id = memory_package.db.add_client(client)
+    memory_package.db.close_dbs()
     return client_id
 
 
 def local_add_order(order: Order):
-    open_dbs()
-    order_id = add_order(order)
-    close_dbs()
+    memory_package.db.open_dbs()
+    order_id = memory_package.db.add_order(order)
+    memory_package.db.close_dbs()
     return order_id
 
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    clear_db()
+    memory_package.db = InMemoryDb()
     set_calls_count(0)
 
 
@@ -59,12 +58,12 @@ def test_send_app_info_should_send_back_cookies_sent_by_client():
 def test_send_app_info_should_send_back_correct_number_of_orders():
     response = test_client.get("/")
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["tasks_count"] == get_orders_count()
+    assert response.json()["tasks_count"] == memory_package.db.get_orders_count()
     local_add_order(order1)
     local_add_order(order2)
     response = test_client.get("/")
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["tasks_count"] == get_orders_count()
+    assert response.json()["tasks_count"] == memory_package.db.get_orders_count()
 
 
 def test_send_app_info_should_return_ok_response_when_correct_global_dependency_key():

@@ -4,23 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Main app &amp; tests cleanup, app package created and static files">
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Files moved &amp; debugging">
+      <change afterPath="$PROJECT_DIR$/client_package/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client_package/client.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/memory_package/db_abstract.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/routers/test/commons.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/main/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/test/test_exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/test_exceptions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/test/test_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/test_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/background_tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/background_tasks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blocking_list.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/blocking_list.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client_management_package/main/token.py" beforeDir="false" afterPath="$PROJECT_DIR$/client_management_package/main/token.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client_management_package/test/test_token.py" beforeDir="false" afterPath="$PROJECT_DIR$/client_management_package/test/test_token.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/conftest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/exceptions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/mapper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/memory_package/in_memory_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/in_memory_db.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dependencies_package/main/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/dependencies_package/main/dependencies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dependencies_package/test/test_dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/dependencies_package/test/test_dependencies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/memory_package/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/memory_package/in_memory_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/in_memory_db/in_memory_db.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/orders_management_package/mapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/mapper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/orders_management_package/process_order.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/process_order.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routers/main/clients.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/main/clients.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routers/main/orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/main/orders.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routers/test/test_clients.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/test/test_clients.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tags.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/tags.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_funs.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/test_exceptions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routers/test/test_orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/test/test_orders.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,6 +55,9 @@
     &quot;accountId&quot;: &quot;04a8ce6e-75c7-4231-8f1c-5054c1f6ae7e&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -89,6 +96,10 @@
     "HTTP Request.queueAppScratch | #8.executor": "Run",
     "HTTP Request.queueAppScratch | #9.executor": "Run",
     "HTTP Request.scratch | #1.executor": "Run",
+    "Python tests.Python tests for test_clients.test_change_client_password_should_return_client_data_after_password_change.executor": "Run",
+    "Python tests.Python tests for test_clients.test_change_client_password_should_return_client_data_and_not_change_password_when_password_not_given.executor": "Run",
+    "Python tests.Python tests for test_clients.test_change_client_password_should_update_password_to_correct_values.executor": "Run",
+    "Python tests.Python tests for test_clients.test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled.executor": "Run",
     "Python tests.Python tests for test_clients.test_fake_login_and_set_photo_should_return_401_status_code_when_password_is_incorrect.executor": "Run",
     "Python tests.Python tests for test_clients.test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect.executor": "Run",
     "Python tests.Python tests for test_clients.test_fake_login_and_set_photo_should_return_updated_client_data.executor": "Run",
@@ -194,10 +205,14 @@
     "Python tests.Python tests for test_main.test_swap_orders_client_should_change_task_owner_and_create_new_client.executor": "Run",
     "Python tests.Python tests for test_main.test_swap_orders_client_should_remove_owner_from_order_when_query_parameter_is_empty.executor": "Run",
     "Python tests.Python tests for test_main.test_swap_orders_client_should_return_404_status_code_when_order_does_not_exist.executor": "Run",
+    "Python tests.Python tests for test_orders.test_swap_orders_client_should_change_task_owner.executor": "Run",
+    "Python tests.Python tests in test_clients.py.executor": "Run",
     "Python tests.Python tests in test_dependencies.py.executor": "Run",
     "Python tests.Python tests in test_endpoints.py.executor": "Run",
+    "Python tests.Python tests in test_exceptions.py.executor": "Run",
     "Python tests.Python tests in test_funs.py.executor": "Run",
     "Python tests.Python tests in test_main.py.executor": "Run",
+    "Python tests.Python tests in test_orders.py.executor": "Run",
     "Python tests.Python tests in test_passwords.py.executor": "Run",
     "Python tests.Python tests in test_token.py.executor": "Run",
     "Python tests.pytest for test_main.test_get_clients_should_return_correct_number_of_clients.executor": "Run",
@@ -224,38 +239,15 @@
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\routers\test" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\memory_package\in_memory_db" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\app\test" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\app\main" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\memory_package" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\orders_management_package" />
-      <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\dependencies_package\main" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main">
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="fastApiQueueApp" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/app/main" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app/main/main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="Python tests for test_clients.test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python tests.Python tests in test_orders.py">
+    <configuration name="Python tests for test_clients.test_change_client_password_should_return_client_data_and_not_change_password_when_password_not_given" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -267,65 +259,81 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_clients.test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect&quot;" />
+      <option name="_new_target" value="&quot;test_clients.test_change_client_password_should_return_client_data_and_not_change_password_when_password_not_given&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_static_file_endpoint_should_return_404_status_code_when_static_file_does_not_exist" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_clients.test_change_client_password_should_update_password_to_correct_values" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/app/test" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/routers/test" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_static_file_endpoint_should_return_404_status_code_when_static_file_does_not_exist&quot;" />
+      <option name="_new_target" value="&quot;test_clients.test_change_client_password_should_update_password_to_correct_values&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_static_file_endpoint_should_return_405_status_code_when_static_file_does_not_exist" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_clients.test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/app/test" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/routers/test" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_static_file_endpoint_should_return_405_status_code_when_static_file_does_not_exist&quot;" />
+      <option name="_new_target" value="&quot;test_clients.test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_main.test_static_file_endpoint_should_return_ok_response" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests in test_clients.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/app/test" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/routers/test" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_main.test_static_file_endpoint_should_return_ok_response&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/routers/test/test_clients.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests in test_orders.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="fastApiQueueApp" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/routers/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/routers/test/test_orders.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python tests.Python tests for test_clients.test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect" />
-        <item itemvalue="Python tests.Python tests for test_main.test_static_file_endpoint_should_return_404_status_code_when_static_file_does_not_exist" />
-        <item itemvalue="Python tests.Python tests for test_main.test_static_file_endpoint_should_return_405_status_code_when_static_file_does_not_exist" />
-        <item itemvalue="Python tests.Python tests for test_main.test_static_file_endpoint_should_return_ok_response" />
+        <item itemvalue="Python tests.Python tests in test_orders.py" />
+        <item itemvalue="Python tests.Python tests in test_clients.py" />
+        <item itemvalue="Python tests.Python tests for test_clients.test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled" />
+        <item itemvalue="Python tests.Python tests for test_clients.test_change_client_password_should_update_password_to_correct_values" />
+        <item itemvalue="Python tests.Python tests for test_clients.test_change_client_password_should_return_client_data_and_not_change_password_when_password_not_given" />
       </list>
     </recent_temporary>
   </component>
@@ -360,7 +368,7 @@
       <workItem from="1723531540029" duration="40624000" />
       <workItem from="1724045628816" duration="21803000" />
       <workItem from="1724134043034" duration="10848000" />
-      <workItem from="1724219657508" duration="2633000" />
+      <workItem from="1724219657508" duration="12743000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -578,7 +586,15 @@
       <option name="project" value="LOCAL" />
       <updated>1724219892460</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="Files moved &amp; debugging">
+      <option name="closed" value="true" />
+      <created>1724242664964</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1724242664964</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -596,7 +612,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Simple deleting order by id and added async locks" />
     <MESSAGE value="Enum as path parameter, basic response and query parameters" />
     <MESSAGE value="Add user without task with query parameters" />
     <MESSAGE value="Process order by id with Path parameter keyword, Body keyword. Delete orders by id fix" />
@@ -621,22 +636,12 @@
     <MESSAGE value="client_management_package cleanup, swapping orders fix and background tasks" />
     <MESSAGE value="Tests cleanup &amp; fixes, API metadata" />
     <MESSAGE value="Main app &amp; tests cleanup, app package created and static files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Main app &amp; tests cleanup, app package created and static files" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/app/main/main.py</url>
-          <line>151</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Files moved &amp; debugging" />
+    <option name="LAST_COMMIT_MESSAGE" value="Files moved &amp; debugging" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1724220586835" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/routers/test" />
-    <SUITE FILE_PATH="coverage/fastApiQueueApp$main.coverage" NAME="main Coverage Results" MODIFIED="1724242505681" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/main" />
+    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1724269113906" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/routers/test" />
+    <SUITE FILE_PATH="coverage/fastApiQueueApp$main.coverage" NAME="main Coverage Results" MODIFIED="1724242549753" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/main" />
     <SUITE FILE_PATH="coverage/fastApiQueueApp$pytest_for_test_main_test_get_clients_should_return_correct_number_of_clients.coverage" NAME="pytest for test_main.test_get_clients_should_return_correct_number_of_clients Coverage Results" MODIFIED="1723659766579" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
