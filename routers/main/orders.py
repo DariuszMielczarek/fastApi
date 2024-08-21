@@ -5,17 +5,17 @@ from fastapi.encoders import jsonable_encoder
 from starlette import status
 from starlette.responses import JSONResponse, Response
 import memory_package
-from background_tasks import send_notification_simulator
-from blocking_list import BlockingList
+from app.main.background_tasks import send_notification_simulator
+from memory_package.blocking_list import BlockingList
 from client_management_package import hash_password
 from dependencies_package.main.dependencies import CommonDependencyAnnotation, oauth2_scheme, get_current_client
-from exceptions import NoOrderException
-from mapper import map_orderDto_to_Order
+from app.main.exceptions import NoOrderException
+from orders_management_package.mapper import map_orderDto_to_Order
 from memory_package import orders_lock, Client, logger, get_orders_by_client_id, get_clients_by_ids, ClientOut, \
     get_client_by_id
 from order_package import OrderStatus, Order
 from orders_management_package import OrderDTO, process_order
-from tags import Tags
+from app.main.tags import Tags
 
 order_router = APIRouter(prefix="/orders")
 

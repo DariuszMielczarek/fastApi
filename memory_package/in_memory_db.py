@@ -2,7 +2,7 @@ import copy
 
 from pydantic import BaseModel
 
-from blocking_list import BlockingList
+from memory_package.blocking_list import BlockingList
 from order_package import Order
 from .in_memory_vars import orders_lock
 

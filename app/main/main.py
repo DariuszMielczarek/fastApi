@@ -1,6 +1,8 @@
 import os
+import sys
 from datetime import timedelta
 from typing import Annotated
+import uvicorn
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
@@ -8,16 +10,16 @@ from starlette.requests import Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # noqa: E402
 import memory_package
 import routers
 from client_management_package import hash_password, EXPIRE_TIME_TOKEN, verify_password, create_access_token, Token
 from dependencies_package.main.dependencies import (query_or_cookie_extractor, global_dependency_verify_key_common,
                                                     dependency_with_yield)
-from exceptions import NoOrderException
+from app.main.exceptions import NoOrderException
 from memory_package import logger, get_client_by_name, increment_calls_count
 from memory_package.in_memory_db import ClientInDb
-from tags import Tags
-
+from app.main.tags import Tags
 
 description = """
 FastApiQueueApp possibilities:
@@ -48,7 +50,6 @@ FastApiQueueApp possibilities:
 ####    Create new order
 """
 
-
 tags_metadata = [
     {
         "name": Tags.clients,
@@ -76,7 +77,6 @@ tags_metadata = [
     },
 ]
 
-
 app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depends(dependency_with_yield)],
               title='FastApiQueueApp',
               description=description,
@@ -97,7 +97,6 @@ app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depend
 app.include_router(routers.client_router)
 app.include_router(routers.order_router)
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
-
 
 origins = [
     "http://localhost",
@@ -143,7 +142,8 @@ def send_app_info(query_or_ads_id: Annotated[str, Depends(query_or_cookie_extrac
     else:
         logger.info('App info function called without query/cookies value')
     return JSONResponse(status_code=status.HTTP_200_OK,
-                        content={"message": "Success", "query_or_ads_id": query_or_ads_id, "tasks_count": len(memory_package.get_orders_db())})
+                        content={"message": "Success", "query_or_ads_id": query_or_ads_id,
+                                 "tasks_count": len(memory_package.get_orders_db())})
 
 
 @app.post("/token")
@@ -161,3 +161,7 @@ async def real_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()])
     )
 
     return Token(access_token=access_token, token_type="bearer")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

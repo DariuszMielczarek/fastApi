@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import pytest
@@ -142,7 +143,8 @@ def test_fake_login_should_return_404_status_code_when_name_is_incorrect():
 def test_fake_login_and_set_photo_should_return_updated_client_data():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password}
-    files = {'file': open('./static/test_image.png', 'rb')}
+    file_path = os.path.join(os.path.dirname(__file__), 'static/test_image.png')
+    files = {'file': open(file_path, 'rb')}
     response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['name'] == client1.name
@@ -159,7 +161,8 @@ def test_fake_login_and_set_photo_should_return_404_status_code_when_no_file_was
 def test_fake_login_and_set_photo_should_return_401_status_code_when_password_is_incorrect():
     local_add_client(client1)
     data = {"name": client1.name, "password": client1.password + "1"}
-    files = {'file': open('./static/test_image.png', 'rb')}
+    file_path = os.path.join(os.path.dirname(__file__), 'static/test_image.png')
+    files = {'file': open(file_path, 'rb')}
     response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -167,7 +170,8 @@ def test_fake_login_and_set_photo_should_return_401_status_code_when_password_is
 def test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect():
     local_add_client(client1)
     data = {"name": client1.name + "1", "password": client1.password}
-    files = {'file': open('./static/test_image.png', 'rb')}
+    file_path = os.path.join(os.path.dirname(__file__), 'static/test_image.png')
+    files = {'file': open(file_path, 'rb')}
     response = test_client.post("clients/login_set_photo", data=data, files=files)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 

@@ -4,7 +4,7 @@ import jwt
 from pydantic import BaseModel
 
 from client_management_package.main.token_vars import EXPIRE_TIME_TOKEN, SECRET_KEY, ALGORITHM
-from exceptions import WrongDeltaException
+from app.main.exceptions import WrongDeltaException
 
 
 class Token(BaseModel):

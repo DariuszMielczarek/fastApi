@@ -111,3 +111,13 @@ def test_real_login_should_return_401_status_code_when_password_is_incorrect():
     form = {"username": client1.name, "password": 'xyz'}
     response = test_client.post("/token", data=form)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_static_file_endpoint_with_test_image_should_return_ok_response():
+    response = test_client.get("/static/test_image.png")
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_static_file_endpoint_should_return_404_status_code_when_static_file_does_not_exist():
+    response = test_client.get("/static/test_image2.png")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
