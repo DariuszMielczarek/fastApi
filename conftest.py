@@ -21,6 +21,6 @@ def pytest_generate_tests(metafunc):
         memory_package.db_type = 'postgres'
     elif db_type == "memory":
         memory_package.db = InMemoryDb()
-        memory_package.db_type = 'in_memory'
+        memory_package.db_type = 'memory'
     else:
         raise ValueError("Unsupported database type: {}".format(db_type))

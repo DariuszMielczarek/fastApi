@@ -1,7 +1,7 @@
 import copy
 
 from client_management_package.main.passwords import hash_password
-from client_package.client import ClientInDb
+from client_package.client import ClientInDb, Client
 from memory_package.blocking_list import BlockingList
 from memory_package import AbstractDb
 from order_package import Order
@@ -64,10 +64,10 @@ class InMemoryDb(AbstractDb):
         self.clients_db.remove(client)
 
     def get_next_order_id(self):
-        return 0 if len(self.get_orders_db()) == 0 else max(self.get_orders_db(), key=lambda order: order.id).id + 1
+        return 1 if len(self.get_orders_db()) == 0 else max(self.get_orders_db(), key=lambda order: order.id).id + 1
 
     def get_next_client_id(self):
-        return 0 if len(self.get_clients_db()) == 0 else max(self.get_clients_db(), key=lambda client: client.id).id + 1
+        return 1 if len(self.get_clients_db()) == 0 else max(self.get_clients_db(), key=lambda client: client.id).id + 1
 
     def get_clients_count(self):
         return len(self.clients_db)
@@ -118,7 +118,7 @@ class InMemoryDb(AbstractDb):
                         client.orders[i] = order
 
     def map_client(self, client):
-        return client
+        return Client.model_validate(client).model_dump()
 
     def change_client_password(self, client, password):
         client.password = hash_password(password) if password is not None else client.password
@@ -131,4 +131,5 @@ class InMemoryDb(AbstractDb):
 
     def remove_all_clients_orders(self, client) -> None:
         for order in client.orders:
+            print('AAAA\n' + str(self.get_orders_db()))
             self.remove_order(order)

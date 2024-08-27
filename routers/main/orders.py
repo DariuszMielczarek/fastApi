@@ -50,6 +50,7 @@ async def swap_orders_client(background_tasks: BackgroundTasks,
                     client_id = memory_package.db.add_client(name="New client" + str(client_id),
                                                              password=hash_password("123"))
                     print(client_id)
+                    memory_package.db.add_order_to_client(swapped_order, memory_package.db.get_client_by_id(client_id))
                     background_tasks.add_task(send_notification_simulator, name="New client" + str(client_id))
                     logger.info('Created new client')
                 else:

@@ -33,7 +33,7 @@ def local_add_order(order: Order) -> None:
 
 def local_add_order_to_db_and_client(client_id: int, order_desc: str, order_status: OrderStatus = OrderStatus.received) -> int:
     order_id1 = memory_package.db.get_next_order_id()
-    if memory_package.db_type == 'in_memory':
+    if memory_package.db_type == 'memory':
         new_order = Order(id=order_id1, description=order_desc, client_id=client_id, creation_date=datetime.now(),
                           status=order_status)
         local_add_order(new_order)

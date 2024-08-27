@@ -4,11 +4,11 @@ from .in_memory_db.in_memory_db import InMemoryDb
 from .postgres_db.postgres_db import PostgresDb, Order as OrderPostgres, Client as ClientPostgres
 from client_package import Client
 
-db: AbstractDb = PostgresDb()
-db_type: str = 'postgres'
+db: AbstractDb = InMemoryDb()
+db_type: str = 'memory'
 
 db_classes = {
-    'in_memory': InMemoryDb,
+    'memory': InMemoryDb,
     'postgres': PostgresDb
 }
 

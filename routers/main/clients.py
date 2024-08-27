@@ -88,9 +88,12 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
                             content={"message": "First id greater than last id"})
     clients_to_remove = []
     async with orders_lock:
+        print(memory_package.db.get_clients_db())
+        print(memory_package.db.get_orders_db())
         for client in memory_package.db.get_clients_db():
             if first <= client.id <= last:
                 clients_to_remove.append(client)
+        print(clients_to_remove)
         for client in clients_to_remove:
             memory_package.db.remove_all_clients_orders(client)
             memory_package.db.remove_client(client)

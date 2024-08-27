@@ -43,6 +43,7 @@ def test_swap_orders_client_should_change_task_owner_and_create_new_client():
     assert response.status_code == status.HTTP_201_CREATED
     assert memory_package.db.get_clients_count() == 2
     assert len(memory_package.db.get_orders_by_client_id(client_id1)) == 0
+    print(memory_package.db.get_clients_db())
     assert len(memory_package.db.get_orders_by_client_name("New client" + str(new_client_id))) == 1
 
 
@@ -382,6 +383,7 @@ def test_create_order_should_create_new_client_when_client_with_given_client_id_
     assert memory_package.db.get_orders_count() == 1
     assert memory_package.db.get_clients_count() == 1
     clients_orders = memory_package.db.get_orders_by_client_name("New client100")
+    print(clients_orders)
     assert len(clients_orders) == 1
     assert clients_orders[0].description == order_data['description']
     assert clients_orders[0].time == order_data['time']
