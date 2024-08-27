@@ -1,14 +1,12 @@
-from datetime import datetime
 import jwt
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
 from client_management_package import SECRET_KEY, ALGORITHM
 from app.main.main import app
-from memory_package import set_calls_count, InMemoryDb
-from order_package import Order, OrderStatus
-from commons import (client1, client2, local_add_order_to_db_and_client, local_add_order,
-                     local_add_client)
+from memory_package import set_calls_count
+from order_package import OrderStatus
+from commons import client1, client2, local_add_order_to_db_and_client, local_add_client
 import memory_package
 
 
@@ -26,7 +24,6 @@ def test_swap_orders_client_should_change_task_owner():
     order_id = local_add_order_to_db_and_client(client_id1, "order1")
     client_id2 = local_add_client(client2)
     params = {'client_id': client_id2}
-    print("/orders/swap/" + str(order_id))
     response = test_client.post("/orders/swap/" + str(order_id), params=params)
     assert response.status_code == status.HTTP_201_CREATED
     assert len(memory_package.db.get_orders_by_client_id(client_id1)) == 0
@@ -43,7 +40,6 @@ def test_swap_orders_client_should_change_task_owner_and_create_new_client():
     assert response.status_code == status.HTTP_201_CREATED
     assert memory_package.db.get_clients_count() == 2
     assert len(memory_package.db.get_orders_by_client_id(client_id1)) == 0
-    print(memory_package.db.get_clients_db())
     assert len(memory_package.db.get_orders_by_client_name("New client" + str(new_client_id))) == 1
 
 
@@ -363,7 +359,7 @@ def test_create_order_should_return_created_response():
 
 def test_create_order_should_save_order_with_given_data():
     client_id = local_add_client(client1)
-    order_data = {"description": "order1", "time": 44}
+    order_data = {"description": "order1", "time": 2}
     response = test_client.post("/orders/" + str(client_id), json=order_data)
     assert response.status_code == status.HTTP_201_CREATED
     assert memory_package.db.get_orders_count() == 1
@@ -377,13 +373,12 @@ def test_create_order_should_save_order_with_given_data():
 
 def test_create_order_should_create_new_client_when_client_with_given_client_id_does_not_exist():
     client_id = 100
-    order_data = {"description": "order1", "time": 44}
+    order_data = {"description": "order1", "time": 4}
     response = test_client.post("/orders/" + str(client_id), json=order_data)
     assert response.status_code == status.HTTP_201_CREATED
     assert memory_package.db.get_orders_count() == 1
     assert memory_package.db.get_clients_count() == 1
     clients_orders = memory_package.db.get_orders_by_client_name("New client100")
-    print(clients_orders)
     assert len(clients_orders) == 1
     assert clients_orders[0].description == order_data['description']
     assert clients_orders[0].time == order_data['time']

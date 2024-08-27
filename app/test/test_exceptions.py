@@ -2,7 +2,6 @@ import pytest
 from starlette import status
 from starlette.testclient import TestClient
 from app.main.main import app
-from memory_package import InMemoryDb
 import memory_package
 
 test_client = TestClient(app)

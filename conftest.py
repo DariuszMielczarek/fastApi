@@ -1,6 +1,3 @@
-import sys
-import os
-import pytest
 import memory_package
 from memory_package import PostgresDb, InMemoryDb
 

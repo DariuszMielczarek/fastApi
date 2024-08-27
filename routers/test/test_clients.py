@@ -207,11 +207,8 @@ def test_get_clients_should_return_correct_number_of_clients():
         local_add_client(client)
     params = {"count": len(clients) + 1}
     response = test_client.get("/clients/", params=params)
-    print('eeeeeee')
     assert response.status_code == status.HTTP_200_OK
-    print('wwwwwww')
     assert len(response.json()) == len(clients)
-    print('qqqqqqqqq')
     params = {"count": len(clients)}
     response = test_client.get("/clients/", params=params)
     assert response.status_code == status.HTTP_200_OK

@@ -35,7 +35,8 @@ class InMemoryDb(AbstractDb):
 
     def add_client(self, name, password, photo=str(), orders=None):
         client_id = self.get_next_client_id()
-        self.clients_db.append(ClientInDb(name=name, photo=photo, password=password, orders=orders if orders else [], id=client_id))
+        self.clients_db.append(ClientInDb(name=name, photo=photo, password=password,
+                                          orders=orders if orders else [], id=client_id))
         return client_id
 
     def add_order_to_client(self, order, client):
@@ -131,5 +132,4 @@ class InMemoryDb(AbstractDb):
 
     def remove_all_clients_orders(self, client) -> None:
         for order in client.orders:
-            print('AAAA\n' + str(self.get_orders_db()))
             self.remove_order(order)

@@ -6,11 +6,10 @@ from starlette.responses import JSONResponse, Response
 from app.main.background_tasks import send_notification_simulator
 from client_management_package import hash_password
 from client_package import ClientOut
-from client_package.client import Client, ClientInDb
+from client_package.client import Client
 from dependencies_package.main.dependencies import verify_key_common, CommonQueryParamsClass, CommonDependencyAnnotation
 from memory_package import logger, orders_lock
 from app.main.tags import Tags
-from memory_package.blocking_list import BlockingList
 import memory_package
 
 client_router = APIRouter(prefix="/clients", tags=[Tags.clients])
@@ -25,9 +24,7 @@ async def change_client_password(client_name: Annotated[str, Path()],
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
     if password:
         memory_package.db.change_client_password(client, password)
-    print(client)
     client_data = memory_package.db.map_client(client)
-    print(client_data)
     return ClientOut(**client_data)
 
 
@@ -88,12 +85,9 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
                             content={"message": "First id greater than last id"})
     clients_to_remove = []
     async with orders_lock:
-        print(memory_package.db.get_clients_db())
-        print(memory_package.db.get_orders_db())
         for client in memory_package.db.get_clients_db():
             if first <= client.id <= last:
                 clients_to_remove.append(client)
-        print(clients_to_remove)
         for client in clients_to_remove:
             memory_package.db.remove_all_clients_orders(client)
             memory_package.db.remove_client(client)
@@ -104,8 +98,6 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
 @client_router.get('/', response_model=list[ClientOut])
 async def get_clients(count: Annotated[int | None, Query(gt=0)] = None):
     clients = memory_package.db.get_clients_db(count)
-    print('rrrrrrrrr')
-    print(clients)
     return clients
 
 

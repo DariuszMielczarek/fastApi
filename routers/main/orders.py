@@ -6,7 +6,7 @@ from starlette import status
 from starlette.responses import JSONResponse, Response
 import memory_package
 from app.main.background_tasks import send_notification_simulator
-from client_package.client import Client, ClientOut
+from client_package.client import ClientOut
 from memory_package.blocking_list import BlockingList
 from client_management_package import hash_password
 from dependencies_package.main.dependencies import CommonDependencyAnnotation, oauth2_scheme, get_current_client
@@ -36,32 +36,24 @@ async def swap_orders_client(background_tasks: BackgroundTasks,
         })] = None):   # noqa: E501
     async with orders_lock:
         swapped_order = memory_package.db.get_order_by_id(order_id)
-        print(swapped_order)
         if swapped_order:
             logger.info(f"Swapping client of order with id {order_id}")
             old_client = memory_package.db.get_client_by_id(swapped_order.client_id)
             memory_package.db.remove_order_from_client(old_client, swapped_order)
             if client_id is not None:
-                print('lolzzzzzzz')
                 new_client = memory_package.db.get_client_by_id(client_id)
-                print('kkkk')
                 if new_client is None:
-                    print('wwwwww')
                     client_id = memory_package.db.add_client(name="New client" + str(client_id),
                                                              password=hash_password("123"))
-                    print(client_id)
                     memory_package.db.add_order_to_client(swapped_order, memory_package.db.get_client_by_id(client_id))
                     background_tasks.add_task(send_notification_simulator, name="New client" + str(client_id))
                     logger.info('Created new client')
                 else:
-                    print('ooooooo')
                     memory_package.db.add_order_to_client(swapped_order, new_client)
-                    # new_client.orders.append(swapped_order)
                     logger.info('Added new order to the existing client')
             memory_package.db.change_order_owner(client_id, swapped_order.id)
             return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Success"})
         else:
-            print('xdddd4')
             logger.warning(f"No order with id {order_id}")
             raise NoOrderException(order_id=order_id)
 
@@ -77,11 +69,9 @@ async def delete_orders_of_ids(commons: CommonDependencyAnnotation):
     orders_to_remove = []
     async with orders_lock:
         for order in memory_package.db.get_orders_db():
-            print('Orderrrrr' + str(order))
             if first <= order.id <= last:
                 orders_to_remove.append(order)
         for order in orders_to_remove:
-            print('qqqqqqq' + str(order))
             memory_package.db.remove_order(order)
             logger.info(f"Removing order with id {order.id}")
             memory_package.db.remove_order_from_client(memory_package.db.get_client_by_id(order.client_id), order)
@@ -131,20 +121,19 @@ async def get_orders(_token: Annotated[str, Depends(oauth2_scheme)]):
 
 
 @order_router.get('/get/current', tags=[Tags.order_get])
-async def get_orders_by_current_client(current_user: Annotated[ClientOut | memory_package.Client, Depends(get_current_client)]):
+async def get_orders_by_current_client(current_user: Annotated[ClientOut | memory_package.Client, Depends(get_current_client)]):  # noqa: E501
     return await get_orders_by_client(memory_package.db.get_client_id_from_client_by_name(current_user.name))
 
 
 @order_router.get('/get/{client_id}', tags=[Tags.order_get])
 async def get_orders_by_client(client_id: int):
-    print('jjjjjj' + str(client_id))
     async with orders_lock:
         orders = memory_package.db.get_orders_by_client_id(client_id)
     if orders is not None:
         logger.info(f"Return user''s {client_id} orders list")
         return JSONResponse(status_code=status.HTTP_200_OK,
                             content={"message": "Success",
-                                     "orders": [jsonable_encoder(Order.model_validate(order).model_dump()) for order in orders]})
+                                     "orders": [jsonable_encoder(Order.model_validate(order).model_dump()) for order in orders]})  # noqa: E501
     else:
         logger.warning(f"No user with id: {client_id}")
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Incorrect id"})
@@ -172,7 +161,6 @@ async def process_order_of_id(order_id: Annotated[int, Path(title="Order to proc
 @order_router.post('/process', tags=[Tags.order_process], deprecated=True)
 async def process_next_order() -> JSONResponse:
     order = await memory_package.db.get_first_order_with_status(OrderStatus.received)
-    print('sssss' + str(order))
     if order is None:
         logger.warning("No awaiting order")
         raise NoOrderException(message="No awaiting order")
@@ -211,18 +199,12 @@ async def delete_order(order_id: int):
     async with orders_lock:
         removed_order = memory_package.db.get_order_by_id(order_id)
         if removed_order:
-            print('eeeeee' + str(memory_package.db.get_orders_db()))
             new_orders_db = [order for order in memory_package.db.get_orders_db() if order.id != order_id]
             new_orders_db = BlockingList(new_orders_db)
-            print('pppppppppppp')
-            print(memory_package.db.get_orders_db())
-            print(new_orders_db)
             memory_package.db.set_new_orders_db(new_orders_db)
-            print(memory_package.db.get_orders_db())
             logger.info(f"Removing order with id {order_id}")
             client = memory_package.db.get_client_by_id(removed_order.client_id)
             memory_package.db.remove_order_from_client(client, removed_order)
-            print(memory_package.db.get_orders_db())
             return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Success"})
         else:
             logger.warning(f"No order with id {order_id}")

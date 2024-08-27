@@ -63,39 +63,32 @@ class PostgresDb(AbstractDb):
             for order in new_orders_db:
                 order_as_dict = vars(order)
                 order_as_dict.pop('_sa_instance_state')
-                print(order_as_dict)
                 statement = insert(Order).values(order_as_dict)
                 session.execute(statement)
             session.commit()
-        print('BBBBBBB')
-        print(self.get_orders_db())
 
     def set_new_clients_db(self, new_clients_db: BlockingList):
         with Session(engine) as session:
             session.query(Client).delete()
             session.commit()
         for client in new_clients_db:
-            self.add_client(client)
+            self.add_client(client.name, client.password, client.photo, client.orders)
 
     async def get_all_orders_as_dict(self):
         statement = select(Order).order_by(Order.id)
         with Session(engine) as session:
             result = session.execute(statement)
             fetched = result.fetchall()
-            print('qqqqqqq' + str(fetched))
-        # for order in fetched:
-        #     print(order[0])
-        # return fetched
         return [map_order_postgres_to_order_in_memory(order[0]).model_dump() for order in fetched]
 
     async def get_first_order_with_status(self, status_str: str):
-        statement = select(Order).filter(Order.status == status_str).limit(1)
+        statement = select(Order).filter(Order.status == status_str).limit(1)  # noqa
         with Session(engine) as session:
             fetched = session.execute(statement).fetchall()
             return fetched[0][0] if fetched else None
 
     def get_order_by_id(self, order_id: int):
-        statement = select(Order).filter(Order.id == order_id).limit(1)
+        statement = select(Order).filter(Order.id == order_id).limit(1)  # noqa
         with Session(engine) as session:
             result = session.execute(statement)
             fetched = result.fetchall()
@@ -108,10 +101,8 @@ class PostgresDb(AbstractDb):
                 session.commit()
 
     def add_client(self, name, password, photo=str(), orders=None):
-        print('client')
         if not self.blocked:
             client = Client(name=name, photo=photo, password=password)
-            print(client)
             with Session(engine) as session:
                 session.add(client)
                 session.commit()
@@ -121,7 +112,7 @@ class PostgresDb(AbstractDb):
         pass
 
     def get_client_by_name(self, full_name: str):
-        statement = select(Client).filter(Client.name == full_name).limit(1)
+        statement = select(Client).filter(Client.name == full_name).limit(1)  # noqa
         with Session(engine) as session:
             result = session.execute(statement)
             fetched = result.fetchall()
@@ -135,22 +126,18 @@ class PostgresDb(AbstractDb):
             return orders
 
     def get_client_by_id(self, client_id: int):
-        statement = select(Client).filter(Client.id == client_id).limit(1)
+        statement = select(Client).filter(Client.id == client_id).limit(1)  # noqa
         with Session(engine) as session:
             result = session.execute(statement)
             fetched = result.fetchall()
-            print('lolz2' + str(fetched))
             return fetched[0][0] if fetched else None
 
     def get_clients_db(self, count: int = None):
         statement = select(Client).options(joinedload(Client.orders)).order_by(Client.id).limit(count)
         with Session(engine) as session:
             result = session.execute(statement).unique()
-            print('aaaaaaa' + str(result))
             fetched = result.fetchall()
-            print(fetched)
             clients = [client[0] for client in fetched]
-            print(clients)
             return clients
 
     def get_orders_db(self):
@@ -162,33 +149,26 @@ class PostgresDb(AbstractDb):
             return orders
 
     def remove_order(self, order: Order):
-        print('aaaaaaaaaa')
-        print(self.get_orders_db())
-        statement = delete(Order).where(Order.id == order.id)
+        statement = delete(Order).where(Order.id == order.id)  # noqa
         with Session(engine) as session:
             session.execute(statement)
             session.commit()
-        print(self.get_orders_db())
 
     def remove_client(self, client: ClientInDb):
-        statement = delete(Client).where(Client.id == client.id)
+        statement = delete(Client).where(Client.id == client.id)  # noqa
         with Session(engine) as session:
             session.execute(statement)
             session.commit()
 
     def get_next_order_id(self):
-        statement = select(Order.id).order_by(Order.id).limit(1)
-        with Session(engine) as session:
-            result = session.execute(statement)
-            next_id = result.fetchall()
-            if not next_id:
-                return 1
-
-            return next_id[0][0]+1
-        # return 0 if len(self.get_orders_db()) == 0 else max(self.get_orders_db(), key=lambda order: order.id).id + 1
+        return self._get_next_id(Order)
 
     def get_next_client_id(self):
-        statement = select(Client.id).order_by(Client.id).limit(1)
+        return self._get_next_id(Client)
+
+    @staticmethod
+    def _get_next_id(table):
+        statement = select(table.id).order_by(table.id).limit(1)
         with Session(engine) as session:
             result = session.execute(statement)
             next_id = result.fetchall()
@@ -210,23 +190,21 @@ class PostgresDb(AbstractDb):
             return result.fetchall()[0][0]
 
     def get_password_from_client_by_name(self, full_name: str):
-        statement = select(Client.password).where(Client.name == full_name).limit(1)
+        statement = select(Client.password).where(Client.name == full_name).limit(1)  # noqa
         with Session(engine) as session:
             result = session.execute(statement)
             fetched = result.fetchall()
             return fetched[0][0] if fetched else None
 
     def get_orders_by_client_id(self, client_id: int):
-        print('orders: ' + str(self.get_orders_db()))
-        print('iiiiii' + str(client_id))
-        statement1 = select(Client).filter(Client.id == client_id)
+        statement1 = select(Client).filter(Client.id == client_id)  # noqa
         with Session(engine) as session:
             client_exists = session.execute(statement1).scalars().first()
 
         if not client_exists:
             return None
 
-        statement2 = select(Order).filter(Order.client_id == client_id)
+        statement2 = select(Order).filter(Order.client_id == client_id)  # noqa
         with Session(engine) as session:
             orders = session.execute(statement2).scalars().all()
 
@@ -258,7 +236,6 @@ class PostgresDb(AbstractDb):
             session.commit()
 
     def get_client_id_from_client_by_name(self, client_name) -> int:
-        print('rrrrrr' + client_name)
         statement = select(Client.id).where(Client.name == client_name).limit(1)
         with Session(engine) as session:
             result = session.execute(statement)

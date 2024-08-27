@@ -1,5 +1,4 @@
 from datetime import datetime
-
 import memory_package
 from client_management_package.main.passwords import hash_password
 from client_package import Client
@@ -31,7 +30,7 @@ def local_add_order(order: Order) -> None:
     memory_package.db.close_dbs()
 
 
-def local_add_order_to_db_and_client(client_id: int, order_desc: str, order_status: OrderStatus = OrderStatus.received) -> int:
+def local_add_order_to_db_and_client(client_id: int, order_desc: str, order_status: OrderStatus = OrderStatus.received) -> int:  # noqa: E501
     order_id1 = memory_package.db.get_next_order_id()
     if memory_package.db_type == 'memory':
         new_order = Order(id=order_id1, description=order_desc, client_id=client_id, creation_date=datetime.now(),

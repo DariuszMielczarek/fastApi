@@ -10,7 +10,7 @@ from memory_package import set_calls_count
 from memory_package.postgres_db.postgres_db import Order as OrderInDb
 import memory_package
 from order_package import Order
-from routers.test.commons import local_add_order, order1, order2, local_add_client, client1, client2
+from routers.test.commons import local_add_order, local_add_client, client1, client2
 
 test_client = TestClient(app)
 

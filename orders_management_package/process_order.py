@@ -1,7 +1,7 @@
 from asyncio import sleep, create_task
 
 import memory_package
-from memory_package import orders_lock, logger, db
+from memory_package import orders_lock, logger
 from order_package import Order, OrderStatus
 
 
