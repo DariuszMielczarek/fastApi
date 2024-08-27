@@ -1,43 +1,23 @@
 from datetime import datetime
+
 import jwt
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
 from client_management_package import SECRET_KEY, ALGORITHM
 from app.main.main import app
-from client_package.client import Client
-from memory_package import set_calls_count, InMemoryDb
-from order_package import Order
+from memory_package import set_calls_count
+from memory_package.postgres_db.postgres_db import Order as OrderInDb
 import memory_package
+from order_package import Order
+from routers.test.commons import local_add_order, order1, order2, local_add_client, client1, client2
 
 test_client = TestClient(app)
 
 
-order1 = Order(id=0, description='Order1', creation_date=datetime.now(), client_id=None)
-order2 = Order(id=1, description='Order2', creation_date=datetime.now(), client_id=None)
-name1 = "Client"
-name2 = "Test"
-client1 = Client(name=name1, password='abc')
-client2 = Client(name=name2, password='abc')
-
-
-def local_add_client(client: Client):
-    memory_package.db.open_dbs()
-    client_id = memory_package.db.add_client(client)
-    memory_package.db.close_dbs()
-    return client_id
-
-
-def local_add_order(order: Order):
-    memory_package.db.open_dbs()
-    order_id = memory_package.db.add_order(order)
-    memory_package.db.close_dbs()
-    return order_id
-
-
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    memory_package.db = InMemoryDb()
+    memory_package.reset_db()
     set_calls_count(0)
 
 
@@ -59,8 +39,16 @@ def test_send_app_info_should_send_back_correct_number_of_orders():
     response = test_client.get("/")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["tasks_count"] == memory_package.db.get_orders_count()
-    local_add_order(order1)
-    local_add_order(order2)
+    client_id = local_add_client(client1)
+    if memory_package.db_type == 'in_memory':
+        new_order = Order(id=memory_package.db.get_next_order_id(), description="order1", client_id=client_id,
+                          creation_date=datetime.now())
+        local_add_order(new_order)
+        memory_package.db.add_order_to_client(new_order, memory_package.db.get_client_by_id(client_id))
+    elif memory_package.db_type == 'postgres':
+        new_order = OrderInDb(description="order1", client_id=client_id, creation_date=datetime.now())
+        local_add_order(new_order)
+        memory_package.db.add_order_to_client(new_order, memory_package.db.get_client_by_id(client_id))
     response = test_client.get("/")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["tasks_count"] == memory_package.db.get_orders_count()

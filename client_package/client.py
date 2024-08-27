@@ -7,6 +7,10 @@ class ClientBase(BaseModel):
     orders: list[Order] = []
     photo: str = str()
 
+    model_config = {
+        'from_attributes': True
+    }
+
 
 class Client(ClientBase):
     password: str = Ellipsis

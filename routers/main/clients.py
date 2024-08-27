@@ -23,8 +23,12 @@ async def change_client_password(client_name: Annotated[str, Path()],
     client = memory_package.db.get_client_by_name(client_name)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
-    client.password = hash_password(password) if password is not None else client.password
-    return ClientOut(**client.model_dump())
+    if password:
+        memory_package.db.change_client_password(client, password)
+    print(client)
+    client_data = memory_package.db.map_client(client)
+    print(client_data)
+    return ClientOut(**client_data)
 
 
 @client_router.put("/update/all/{client_name}", response_model=None)
@@ -34,15 +38,13 @@ async def change_client_data(client_name: Annotated[str, Path()],
     client = memory_package.db.get_client_by_name(client_name)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Wrong name"})
-    updated_client = ClientInDb(**client.model_dump())
+    client_data = memory_package.db.map_client(client)
+    updated_client = Client(**client_data)
     updated_client.name = name if name is not None else updated_client.name
     updated_client.password = password if password is not None else updated_client.password
-    clients_db = memory_package.db.get_clients_db()
-    for i, client in enumerate(clients_db):
-        if client.name == client_name:
-            clients_db[i] = updated_client
-    memory_package.db.set_new_clients_db(BlockingList(clients_db))
-    return ClientOut(**updated_client.model_dump())
+    memory_package.db.update_one_client(client_name, updated_client)
+    client_data = memory_package.db.map_client(updated_client)
+    return ClientOut(**client_data)
 
 
 @client_router.post("/login_set_photo", response_model=None, summary="Set photo for client",
@@ -59,14 +61,17 @@ async def fake_login_and_set_photo(commons: Annotated[CommonQueryParamsClass, De
         content = base64.b64encode(content).decode('utf-8')
         client = memory_package.db.get_client_by_name(commons.name)
         client.photo = content
-        return ClientOut(**client.model_dump())
+        memory_package.db.update_one_client(commons.name, client)
+        client_data = memory_package.db.map_client(client)
+        return ClientOut(**client_data)
 
 
 @client_router.post("/fake_login", response_model=None)
 async def fake_login(commons: Annotated[CommonQueryParamsClass, Depends()]) -> ClientOut | JSONResponse:
     client = memory_package.db.get_client_by_name(commons.name)
     if client and client.password == commons.password:
-        return ClientOut(**client.model_dump())
+        client_data = memory_package.db.map_client(client)
+        return ClientOut(**client_data)
     elif client and client.password != commons.password:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Wrong password"})
     else:
@@ -87,9 +92,7 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
             if first <= client.id <= last:
                 clients_to_remove.append(client)
         for client in clients_to_remove:
-            for order in client.orders:
-                memory_package.db.remove_order(order)
-                logger.info(f"Removing order with id {order.id}")
+            memory_package.db.remove_all_clients_orders(client)
             memory_package.db.remove_client(client)
     return JSONResponse(status_code=status.HTTP_200_OK,
                         content={"message": "Success", "removed_count": len(clients_to_remove)})
@@ -97,7 +100,10 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
 
 @client_router.get('/', response_model=list[ClientOut])
 async def get_clients(count: Annotated[int | None, Query(gt=0)] = None):
-    return memory_package.db.get_clients_db(count)
+    clients = memory_package.db.get_clients_db(count)
+    print('rrrrrrrrr')
+    print(clients)
+    return clients
 
 
 @client_router.post('/add', response_model_exclude_unset=True, response_model=None)
@@ -114,7 +120,7 @@ async def add_client_without_task(background_tasks: BackgroundTasks,
         client = memory_package.db.get_client_by_name(full_name)
         if client is None:
             password = "".join(passwords) if passwords else "123"
-            memory_package.db.add_client(Client(name=full_name, password=hash_password(password)))
+            memory_package.db.add_client(name=full_name, password=hash_password(password))
             logger.info(f"Created new client without orders with name {full_name}")
             background_tasks.add_task(send_notification_simulator, name=full_name)
             return ClientOut(name=full_name)

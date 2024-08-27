@@ -10,7 +10,7 @@ test_client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    memory_package.db = InMemoryDb()
+    memory_package.reset_db()
 
 
 def test_no_order_exception_handler_should_return_404_status_code_and_message():

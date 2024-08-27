@@ -8,7 +8,6 @@ from memory_package import set_calls_count
 from commons import (client1, client2, client3, name1, name2, password_list, local_add_order_to_db_and_client,
                      local_add_client)
 import memory_package
-from routers.main import clients
 
 test_client = TestClient(app)
 
@@ -208,8 +207,11 @@ def test_get_clients_should_return_correct_number_of_clients():
         local_add_client(client)
     params = {"count": len(clients) + 1}
     response = test_client.get("/clients/", params=params)
+    print('eeeeeee')
     assert response.status_code == status.HTTP_200_OK
+    print('wwwwwww')
     assert len(response.json()) == len(clients)
+    print('qqqqqqqqq')
     params = {"count": len(clients)}
     response = test_client.get("/clients/", params=params)
     assert response.status_code == status.HTTP_200_OK

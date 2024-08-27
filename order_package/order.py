@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from pydantic import BaseModel
 from .order_status import OrderStatus
 
@@ -19,3 +18,7 @@ class Order(BaseModel):
         if isinstance(other, Order):
             return self.id == other.id
         return False
+
+    model_config = {
+        'from_attributes': True
+    }

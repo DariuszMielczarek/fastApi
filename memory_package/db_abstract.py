@@ -31,7 +31,7 @@ class AbstractDb(ABC):
         pass
 
     @abstractmethod
-    def add_client(self, client) -> int:
+    def add_client(self, name, password, photo=str(), orders=None):
         pass
 
     @abstractmethod
@@ -106,5 +106,34 @@ class AbstractDb(ABC):
     def close_dbs(self) -> None:
         pass
 
+    @abstractmethod
+    def remove_order_from_client(self, client, order) -> None:
+        pass
 
+    @abstractmethod
+    def change_order_owner(self, client_id, order_id) -> None:
+        pass
 
+    @abstractmethod
+    def get_client_id_from_client_by_name(self, client_name) -> int:
+        pass
+
+    @abstractmethod
+    def replace_order_in_client_object(self, order) -> None:
+        pass
+
+    @abstractmethod
+    def map_client(self, client):
+        pass
+
+    @abstractmethod
+    def change_client_password(self, client, password) -> None:
+        pass
+
+    @abstractmethod
+    def update_one_client(self, client_name: str, updated_client):
+        pass
+
+    @abstractmethod
+    def remove_all_clients_orders(self, client) -> None:
+        pass

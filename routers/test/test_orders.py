@@ -3,7 +3,7 @@ import jwt
 import pytest
 from starlette import status
 from starlette.testclient import TestClient
-from client_management_package.main.token_vars import SECRET_KEY, ALGORITHM
+from client_management_package import SECRET_KEY, ALGORITHM
 from app.main.main import app
 from memory_package import set_calls_count, InMemoryDb
 from order_package import Order, OrderStatus
@@ -17,7 +17,7 @@ test_client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    memory_package.db = InMemoryDb()
+    memory_package.reset_db()
     set_calls_count(0)
 
 
@@ -77,7 +77,7 @@ def test_delete_order_should_remove_order():
 def test_delete_order_should_return_404_status_code_if_order_does_not_exist():
     client_id = local_add_client(client1)
     local_add_order_to_db_and_client(client_id, "order1")
-    order_id2 = local_add_order_to_db_and_client(client_id, "order1")
+    order_id2 = local_add_order_to_db_and_client(client_id, "order2")
     response = test_client.delete("/orders/" + str(order_id2 + 1))
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -145,7 +145,7 @@ def test_get_orders_by_current_client_should_return_406_status_code_when_token_i
     assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
-def test_get_orders_by_current_client_should_return_406_status_code_when_client_does_not_exist():
+def test_get_orders_by_current_client_should_return_404_status_code_when_client_does_not_exist():
     encoded_token = jwt.encode({'sub': client1.name}, SECRET_KEY, algorithm=ALGORITHM)
     header = {"Authorization": f"Bearer {encoded_token}"}
     response = test_client.get("/orders/get/current", headers=header)
@@ -223,11 +223,12 @@ def test_get_orders_counts_from_header_should_return_404_status_code_when_header
 
 
 def test_get_orders_by_client_should_return_list_with_created_users_orders():
-    client_id = local_add_client(client1)
-    local_add_order_to_db_and_client(client_id, "order1")
-    local_add_order_to_db_and_client(client_id+1, "order2")
-    local_add_order_to_db_and_client(client_id, "order3")
-    response = test_client.get("/orders/get/" + str(client_id))
+    client_id1 = local_add_client(client1)
+    client_id2 = local_add_client(client2)
+    local_add_order_to_db_and_client(client_id1, "order1")
+    local_add_order_to_db_and_client(client_id2, "order2")
+    local_add_order_to_db_and_client(client_id1, "order3")
+    response = test_client.get("/orders/get/" + str(client_id1))
     assert response.status_code == status.HTTP_200_OK
     orders = response.json()['orders']
     assert len(orders) == 2
@@ -236,33 +237,26 @@ def test_get_orders_by_client_should_return_list_with_created_users_orders():
 
 
 def test_get_orders_by_client_should_return_empty_list_when_no_users_orders_created():
-    client_id = local_add_client(client1)
-    order_id = memory_package.db.get_next_order_id()
-    new_order = Order(id=order_id, description="order2", client_id=client_id + 1, creation_date=datetime.now())
-    local_add_order(new_order)
-    response = test_client.get("/orders/get/" + str(client_id))
+    client_id1 = local_add_client(client1)
+    client_id2 = local_add_client(client2)
+    local_add_order_to_db_and_client(client_id2, "order1")
+    response = test_client.get("/orders/get/" + str(client_id1))
     assert response.status_code == status.HTTP_200_OK
     orders = response.json()['orders']
     assert len(orders) == 0
 
 
 def test_get_orders_by_client_should_return_404_status_code_when_client_id_is_incorrect():
-    response = test_client.get("/orders/get/0")
+    response = test_client.get("/orders/get/10")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_get_orders_by_status_should_return_list_with_created_orders_with_given_status():
-    client_id = local_add_client(client1)
-    local_add_order_to_db_and_client(client_id, "order1")
-    order_id = memory_package.db.get_next_order_id()
-    new_order = Order(id=order_id, description="order2", client_id=client_id + 1,
-                      creation_date=datetime.now(), status=OrderStatus.complete)
-    local_add_order(new_order)
-    order_id = memory_package.db.get_next_order_id()
-    new_order = Order(id=order_id, description="order3", client_id=client_id,
-                      creation_date=datetime.now(), status=OrderStatus.complete)
-    local_add_order(new_order)
-    memory_package.db.add_order_to_client(new_order, memory_package.db.get_clients_by_ids([client_id])[0])
+    client_id1 = local_add_client(client1)
+    local_add_order_to_db_and_client(client_id1, "order1")
+    client_id2 = local_add_client(client2)
+    local_add_order_to_db_and_client(client_id2, "order2", OrderStatus.complete)
+    local_add_order_to_db_and_client(client_id1, "order3", OrderStatus.complete)
     response = test_client.get("/orders/get/status/" + OrderStatus.complete.value)
     assert response.status_code == status.HTTP_200_OK
     orders = response.json()['orders']
@@ -272,8 +266,9 @@ def test_get_orders_by_status_should_return_list_with_created_orders_with_given_
 
 
 def test_get_orders_by_status_should_return_empty_list_when_no_created_orders_with_given_status():
-    client_id = local_add_client(client1)
-    local_add_order_to_db_and_client(client_id+1, "order1")
+    local_add_client(client1)
+    client_id2 = local_add_client(client2)
+    local_add_order_to_db_and_client(client_id2, "order1")
     response = test_client.get("/orders/get/status/" + OrderStatus.complete.value)
     assert response.status_code == status.HTTP_200_OK
     orders = response.json()['orders']
@@ -295,11 +290,7 @@ def test_process_next_order_should_return_first_order_id():
 
 def test_process_next_order_should_change_order_status():
     client_id = local_add_client(client1)
-    order_id = memory_package.db.get_next_order_id()
-    time = 2
-    new_order = Order(id=order_id, time=time, description="order1", client_id=client_id, creation_date=datetime.now())
-    local_add_order(new_order)
-    memory_package.db.add_order_to_client(new_order, memory_package.db.get_clients_by_ids([client_id])[0])
+    order_id = local_add_order_to_db_and_client(client_id, "order1")
     response = test_client.post("/orders/process")
     assert response.status_code == status.HTTP_200_OK
     order = memory_package.db.get_order_by_id(order_id)
@@ -335,11 +326,7 @@ def test_process_order_of_id_should_return_processed_order_id_and_message():
 
 def test_process_order_of_id_should_return_409_status_code_and_message_when_order_status_is_not_received():
     client_id = local_add_client(client1)
-    order_id = memory_package.db.get_next_order_id()
-    new_order = Order(id=order_id, description="order1", client_id=client_id,
-                      creation_date=datetime.now(), status=OrderStatus.in_progress)
-    local_add_order(new_order)
-    memory_package.db.add_order_to_client(new_order, memory_package.db.get_clients_by_ids([client_id])[0])
+    order_id = local_add_order_to_db_and_client(client_id, "order1", OrderStatus.in_progress)
     response = test_client.post("/orders/process/" + str(order_id))
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()['detail']['message'] == "Order does not await for process"
@@ -398,7 +385,7 @@ def test_create_order_should_create_new_client_when_client_with_given_client_id_
     assert len(clients_orders) == 1
     assert clients_orders[0].description == order_data['description']
     assert clients_orders[0].time == order_data['time']
-    assert clients_orders[0].client_id == 0
+    assert clients_orders[0].client_id == 1
 
 
 def test_create_order_should_return_404_status_code_when_no_order_was_sent():

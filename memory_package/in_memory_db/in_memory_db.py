@@ -1,4 +1,6 @@
 import copy
+
+from client_management_package.main.passwords import hash_password
 from client_package.client import ClientInDb
 from memory_package.blocking_list import BlockingList
 from memory_package import AbstractDb
@@ -31,9 +33,9 @@ class InMemoryDb(AbstractDb):
     def add_order(self, order):
         self.orders_db.append(order)
 
-    def add_client(self, client):
+    def add_client(self, name, password, photo=str(), orders=None):
         client_id = self.get_next_client_id()
-        self.clients_db.append(ClientInDb(**client.model_dump(), id=client_id))
+        self.clients_db.append(ClientInDb(name=name, photo=photo, password=password, orders=orders if orders else [], id=client_id))
         return client_id
 
     def add_order_to_client(self, order, client):
@@ -96,3 +98,37 @@ class InMemoryDb(AbstractDb):
     def close_dbs(self):
         self.orders_db.block()
         self.clients_db.block()
+
+    def remove_order_from_client(self, client, order) -> None:
+        client.orders.remove(order)
+
+    def change_order_owner(self, client_id, order_id) -> None:
+        order = self.get_order_by_id(order_id)
+        order.client_id = client_id
+
+    def get_client_id_from_client_by_name(self, client_name) -> int:
+        client = self.get_client_by_name(client_name)
+        return client.id if client else None
+
+    def replace_order_in_client_object(self, order) -> None:
+        for client in self.get_clients_db():
+            if client.id == order.client_id:
+                for i, c_order in enumerate(client.orders):
+                    if c_order.id == order.id:
+                        client.orders[i] = order
+
+    def map_client(self, client):
+        return client
+
+    def change_client_password(self, client, password):
+        client.password = hash_password(password) if password is not None else client.password
+
+    def update_one_client(self, client_name: str, updated_client):
+        for i, client in enumerate(self.clients_db):
+            if client.name == client_name:
+                self.clients_db[i] = updated_client
+        self.set_new_clients_db(BlockingList(self.clients_db))
+
+    def remove_all_clients_orders(self, client) -> None:
+        for order in client.orders:
+            self.remove_order(order)
