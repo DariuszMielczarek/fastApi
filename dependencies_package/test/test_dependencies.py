@@ -11,7 +11,7 @@ from dependencies_package import (global_dependency_verify_key_common, dependenc
                                   delete_of_ids_common_parameters, query_parameter_extractor, query_or_cookie_extractor,
                                   verify_key_common, get_current_client)
 from app.main.main import app
-from memory_package import InMemoryDb, set_calls_count
+from memory_package import set_calls_count
 import memory_package
 
 test_client = TestClient(app)
@@ -19,13 +19,13 @@ test_client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_db_status():
-    memory_package.db = InMemoryDb()
+    memory_package.reset_db()
     set_calls_count(0)
 
 
 def local_add_client(client: Client):
     memory_package.db.open_dbs()
-    client_id = memory_package.db.add_client(client)
+    client_id = memory_package.db.add_client(client.name, client.password, client.photo, client.orders)
     memory_package.db.close_dbs()
     return client_id
 
