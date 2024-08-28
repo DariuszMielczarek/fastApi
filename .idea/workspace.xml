@@ -4,23 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Abstract class AbstractDb and InMemoryDb class &amp; tests and app fix regarding database usage change">
-      <change afterPath="$PROJECT_DIR$/app/main/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/memory_package/postgres_db/postgres_db.py" afterDir="false" />
+    <list default="true" id="e1626834-7579-4fb1-a0f1-eac3c4a90029" name="Changes" comment="Code cleanup">
+      <change afterPath="$PROJECT_DIR$/memory_package/sql_model_db/db.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/memory_package/sql_model_db/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/memory_package/sql_model_db/sql_model_db.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/test/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/conftest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/test/test_exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/test_exceptions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/test/test_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/test_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/conftest.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/memory_package/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/memory_package/db_abstract.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/db_abstract.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/memory_package/in_memory_db/in_memory_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/in_memory_db/in_memory_db.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order_package/order.py" beforeDir="false" afterPath="$PROJECT_DIR$/order_package/order.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/orders_management_package/mapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/mapper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/orders_management_package/process_order.py" beforeDir="false" afterPath="$PROJECT_DIR$/orders_management_package/process_order.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/memory_package/postgres_db/postgres_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/memory_package/postgres_db/postgres_db.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routers/main/clients.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/main/clients.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routers/main/orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/main/orders.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routers/test/commons.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/test/commons.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routers/test/test_clients.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/test/test_clients.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routers/test/test_orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/test/test_orders.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,13 +87,18 @@
     "HTTP Request.queueAppScratch | #8.executor": "Run",
     "HTTP Request.queueAppScratch | #9.executor": "Run",
     "HTTP Request.scratch | #1.executor": "Run",
+    "Python tests.Python tests for test_clients.test_change_client_data_should_return_updated_client_data.executor": "Run",
     "Python tests.Python tests for test_clients.test_change_client_password_should_return_client_data_after_password_change.executor": "Run",
     "Python tests.Python tests for test_clients.test_change_client_password_should_return_client_data_and_not_change_password_when_password_not_given.executor": "Run",
     "Python tests.Python tests for test_clients.test_change_client_password_should_update_password_to_correct_values.executor": "Run",
+    "Python tests.Python tests for test_clients.test_delete_clients_of_ids_should_remove_all_removed_client_orders.executor": "Run",
     "Python tests.Python tests for test_clients.test_delete_clients_of_ids_should_return_removed_clients_count_and_remove_all_orders_when_query_parameters_not_filled.executor": "Run",
     "Python tests.Python tests for test_clients.test_fake_login_and_set_photo_should_return_401_status_code_when_password_is_incorrect.executor": "Run",
     "Python tests.Python tests for test_clients.test_fake_login_and_set_photo_should_return_404_status_code_when_name_is_incorrect.executor": "Run",
     "Python tests.Python tests for test_clients.test_fake_login_and_set_photo_should_return_updated_client_data.executor": "Run",
+    "Python tests.Python tests for test_clients.test_fake_login_should_return_client_data_if_name_and_password_are_correct.executor": "Run",
+    "Python tests.Python tests for test_clients.test_get_clients_should_return_correct_clients_data.executor": "Run",
+    "Python tests.Python tests for test_clients.test_get_clients_should_return_correct_number_of_clients.executor": "Run",
     "Python tests.Python tests for test_dependencies.test_dependency_with_yield_should_open_yield_close_and_open_dbs.executor": "Run",
     "Python tests.Python tests for test_endpoints.test_add_client_without_task_should_add_client_with_correct_password.executor": "Run",
     "Python tests.Python tests for test_endpoints.test_add_client_without_task_should_return_added_client_data.executor": "Run",
@@ -121,6 +121,8 @@
     "Python tests.Python tests for test_endpoints.test_real_login_should_return_401_status_code_when_username_is_incorrect.executor": "Run",
     "Python tests.Python tests for test_endpoints.test_real_login_should_return_valid_token.executor": "Run",
     "Python tests.Python tests for test_endpoints.test_send_app_info_should_return_middleware_calls_counted_in_header.executor": "Run",
+    "Python tests.Python tests for test_exceptions.test_no_order_exception_handler_should_return_404_status_code_and_message.executor": "Run",
+    "Python tests.Python tests for test_exceptions.test_validation_exception_handler_should_return_422_status_code_and_message.executor": "Run",
     "Python tests.Python tests for test_funs.test_cors_headers.executor": "Run",
     "Python tests.Python tests for test_funs.test_create_access_token_should_return_access_token.executor": "Run",
     "Python tests.Python tests for test_funs.test_create_access_token_should_return_valid_access_token.executor": "Run",
@@ -257,15 +259,15 @@
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\routers\test" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp" />
+      <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\app\test" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\orders_management_package" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\app\main" />
       <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\memory_package\in_memory_db" />
-      <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\app\test" />
-      <recent name="C:\Users\davre\PycharmProjects\fastApiQueueApp\memory_package" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests in test_clients.py">
-    <configuration name="Python tests for test_orders.test_create_order_should_create_new_client_when_client_with_given_client_id_does_not_exist" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python tests.Python tests in test_orders.py">
+    <configuration name="Python tests for test_orders.test_delete_order_should_remove_order" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -277,11 +279,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_orders.test_create_order_should_create_new_client_when_client_with_given_client_id_does_not_exist&quot;" />
+      <option name="_new_target" value="&quot;test_orders.test_delete_order_should_remove_order&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_orders.test_process_next_order_should_change_order_status" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_orders.test_get_orders_by_current_client_should_return_current_clients_orders" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -293,11 +295,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_orders.test_process_next_order_should_change_order_status&quot;" />
+      <option name="_new_target" value="&quot;test_orders.test_get_orders_by_current_client_should_return_current_clients_orders&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_orders.test_process_next_order_should_return_first_order_id" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_orders.test_get_orders_counts_from_header_should_return_list_with_counted_given_users_orders" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -309,11 +311,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_orders.test_process_next_order_should_return_first_order_id&quot;" />
+      <option name="_new_target" value="&quot;test_orders.test_get_orders_counts_from_header_should_return_list_with_counted_given_users_orders&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests in test_clients.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_orders.test_get_orders_should_return_list_with_created_orders" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="fastApiQueueApp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -325,8 +327,8 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/routers/test/test_clients.py&quot;" />
-      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <option name="_new_target" value="&quot;test_orders.test_get_orders_should_return_list_with_created_orders&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <configuration name="Python tests in test_orders.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
@@ -347,11 +349,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Python tests in test_clients.py" />
         <item itemvalue="Python tests.Python tests in test_orders.py" />
-        <item itemvalue="Python tests.Python tests for test_orders.test_create_order_should_create_new_client_when_client_with_given_client_id_does_not_exist" />
-        <item itemvalue="Python tests.Python tests for test_orders.test_process_next_order_should_change_order_status" />
-        <item itemvalue="Python tests.Python tests for test_orders.test_process_next_order_should_return_first_order_id" />
+        <item itemvalue="Python tests.Python tests for test_orders.test_get_orders_should_return_list_with_created_orders" />
+        <item itemvalue="Python tests.Python tests for test_orders.test_get_orders_counts_from_header_should_return_list_with_counted_given_users_orders" />
+        <item itemvalue="Python tests.Python tests for test_orders.test_get_orders_by_current_client_should_return_current_clients_orders" />
+        <item itemvalue="Python tests.Python tests for test_orders.test_delete_order_should_remove_order" />
       </list>
     </recent_temporary>
   </component>
@@ -390,6 +392,9 @@
       <workItem from="1724315443201" duration="13399000" />
       <workItem from="1724395244400" duration="15376000" />
       <workItem from="1724575533738" duration="8328000" />
+      <workItem from="1724650873679" duration="17147000" />
+      <workItem from="1724831778416" duration="4608000" />
+      <workItem from="1724838241073" duration="10424000" />
     </task>
     <task id="LOCAL-00001" summary="Creating and reading orders">
       <option name="closed" value="true" />
@@ -623,7 +628,39 @@
       <option name="project" value="LOCAL" />
       <updated>1724269432367</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="Database in PostgreSQL with tests">
+      <option name="closed" value="true" />
+      <created>1724738434131</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1724738434131</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Minor postgres fix and conftest file fix">
+      <option name="closed" value="true" />
+      <created>1724739873069</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1724739873069</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Tests fixes for InMemoryDb">
+      <option name="closed" value="true" />
+      <created>1724768965916</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1724768965916</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Code cleanup">
+      <option name="closed" value="true" />
+      <created>1724770951601</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1724770951601</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -641,10 +678,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Add user without task with query parameters" />
-    <MESSAGE value="Process order by id with Path parameter keyword, Body keyword. Delete orders by id fix" />
-    <MESSAGE value="Packages memory and order_process created. Validation with Field keyword" />
-    <MESSAGE value="Fixes, cleanup and swapping owner of order - examples &amp; nested models" />
     <MESSAGE value="New types usage (datetime, Cookie, Header). Code cleanup" />
     <MESSAGE value="Client models, response models and status. Order package created" />
     <MESSAGE value="NoOrderException, exception handler override, tags &amp; endpoint descriptions" />
@@ -666,22 +699,15 @@
     <MESSAGE value="Main app &amp; tests cleanup, app package created and static files" />
     <MESSAGE value="Files moved &amp; debugging" />
     <MESSAGE value="Abstract class AbstractDb and InMemoryDb class &amp; tests and app fix regarding database usage change" />
-    <option name="LAST_COMMIT_MESSAGE" value="Abstract class AbstractDb and InMemoryDb class &amp; tests and app fix regarding database usage change" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/memory_package/db_abstract.py</url>
-          <line>69</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Database in PostgreSQL with tests" />
+    <MESSAGE value="Minor postgres fix and conftest file fix" />
+    <MESSAGE value="Tests fixes for InMemoryDb" />
+    <MESSAGE value="Code cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Code cleanup" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/fastApiQueueApp$test_orders.coverage" NAME="test_orders Coverage Results" MODIFIED="1724395280558" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/routers/test" />
-    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1724620383946" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/routers/test" />
+    <SUITE FILE_PATH="coverage/fastApiQueueApp$.coverage" NAME=" Coverage Results" MODIFIED="1724848836126" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/routers/test" />
     <SUITE FILE_PATH="coverage/fastApiQueueApp$orders.coverage" NAME="orders Coverage Results" MODIFIED="1724398917026" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/routers/main" />
     <SUITE FILE_PATH="coverage/fastApiQueueApp$main.coverage" NAME="main Coverage Results" MODIFIED="1724242549753" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/main" />
     <SUITE FILE_PATH="coverage/fastApiQueueApp$pytest_for_test_main_test_get_clients_should_return_correct_number_of_clients.coverage" NAME="pytest for test_main.test_get_clients_should_return_correct_number_of_clients Coverage Results" MODIFIED="1723659766579" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

@@ -37,7 +37,7 @@ def local_add_order_to_db_and_client(client_id: int, order_desc: str, order_stat
                           status=order_status)
         local_add_order(new_order)
         memory_package.db.add_order_to_client(new_order, memory_package.db.get_client_by_id(client_id))
-    elif memory_package.db_type == 'postgres':
+    else:
         new_order = OrderInDb(description=order_desc, client_id=client_id, creation_date=datetime.now(),
                               status=order_status)
         local_add_order(new_order)

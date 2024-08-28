@@ -155,6 +155,7 @@ class PostgresDb(AbstractDb):
             session.commit()
 
     def remove_client(self, client: ClientInDb):
+        self.remove_all_clients_orders(client)
         statement = delete(Client).where(Client.id == client.id)  # noqa
         with Session(engine) as session:
             session.execute(statement)

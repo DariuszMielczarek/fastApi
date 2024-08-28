@@ -62,6 +62,7 @@ class InMemoryDb(AbstractDb):
         self.orders_db.remove(order)
 
     def remove_client(self, client: ClientInDb):
+        self.remove_all_clients_orders(client)
         self.clients_db.remove(client)
 
     def get_next_order_id(self):

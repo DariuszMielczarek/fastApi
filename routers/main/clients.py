@@ -89,7 +89,6 @@ async def delete_clients_of_ids(commons: CommonDependencyAnnotation):
             if first <= client.id <= last:
                 clients_to_remove.append(client)
         for client in clients_to_remove:
-            memory_package.db.remove_all_clients_orders(client)
             memory_package.db.remove_client(client)
     return JSONResponse(status_code=status.HTTP_200_OK,
                         content={"message": "Success", "removed_count": len(clients_to_remove)})
