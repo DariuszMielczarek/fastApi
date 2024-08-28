@@ -1,7 +1,6 @@
 from copy import deepcopy
 
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
 from sqlmodel import SQLModel, Session, select, col
 from client_management_package.main.passwords import hash_password
 from client_package import ClientInDb
@@ -9,7 +8,6 @@ from .models import Order, Client
 from .db import engine
 from memory_package import AbstractDb
 from ..blocking_list import BlockingList
-from ..postgres_db.postgres_db import map_order_postgres_to_order_in_memory
 
 
 class SQLModelDb(AbstractDb):
@@ -128,7 +126,7 @@ class SQLModelDb(AbstractDb):
             if not next_id:
                 return 1
             else:
-                return next_id + 1
+                return next_id + 1 # noqa
 
     def get_clients_count(self):
         statement = select(func.count()).select_from(Client)
@@ -221,7 +219,7 @@ class SQLModelDb(AbstractDb):
             session.refresh(client)
 
     def update_one_client(self, client_name: str, updated_client):
-        statement = select(Client).where(Client.name == client_name)
+        statement = select(Client).where(Client.name == client_name) # noqa
         with Session(engine) as session:
             client = session.exec(statement).one()
             client.name = updated_client.name

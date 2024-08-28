@@ -81,7 +81,7 @@ app = FastAPI(dependencies=[Depends(global_dependency_verify_key_common), Depend
               title='FastApiQueueApp',
               description=description,
               summary='Test - training app with FastApi',
-              version='v1.5.1',
+              version='v2.1.1',
               contact={
                   'name': 'DM',
                   'email': '240752@edu.p.lodz.pl',

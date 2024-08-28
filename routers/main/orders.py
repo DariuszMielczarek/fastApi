@@ -7,7 +7,6 @@ from starlette.responses import JSONResponse, Response
 import memory_package
 from app.main.background_tasks import send_notification_simulator
 from client_package.client import ClientOut
-from memory_package.blocking_list import BlockingList
 from client_management_package import hash_password
 from dependencies_package.main.dependencies import CommonDependencyAnnotation, oauth2_scheme, get_current_client
 from app.main.exceptions import NoOrderException
@@ -199,10 +198,7 @@ async def delete_order(order_id: int):
     async with orders_lock:
         removed_order = memory_package.db.get_order_by_id(order_id)
         if removed_order:
-            # new_orders_db = [order for order in memory_package.db.get_orders_db() if order.id != order_id]
-            # new_orders_db = BlockingList(new_orders_db)
             memory_package.db.remove_order(removed_order)
-            # memory_package.db.set_new_orders_db(new_orders_db)
             logger.info(f"Removing order with id {order_id}")
             client = memory_package.db.get_client_by_id(removed_order.client_id)
             memory_package.db.remove_order_from_client(client, removed_order)
